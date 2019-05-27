@@ -54,7 +54,8 @@
     },
     "_is3DNode": true,
     "groupIndex": 0,
-    "_id": "05o++D97hHTJkpKo/cIIEV"
+    "autoReleaseAssets": false,
+    "_id": "bb83c6cc-bbbf-4a3b-994d-45f31a88b143"
   },
   {
     "__type__": "cc.Node",
@@ -193,9 +194,9 @@
     "_clearFlags": 7,
     "_backgroundColor": {
       "__type__": "cc.Color",
-      "r": 206,
-      "g": 206,
-      "b": 206,
+      "r": 30,
+      "g": 84,
+      "b": 87,
       "a": 255
     },
     "_depth": -1,
