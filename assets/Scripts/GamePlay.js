@@ -43,27 +43,18 @@ cc.Class({
             let number = this.numberHexagons;
             while(number > 0){
                 if(this.listHexagonsGroup.length == 0){
-                    // this.createHexagonsAt(this.sizePlayBoard.width / 2, this.sizePlayBoard.height / 4);
+                    this.createHexagonsAt(this.sizePlayBoard.height / 4, this.sizePlayBoard.width / 2);
                     --number;
                 }else{
-
+                    
+                    --number;
                 }
             }
 
             //@TODO: only test
-            for(let row = 0; row <= (~~this.sizePlayBoard.height / 2); ++row){
-                for(let column = 0; column < this.sizePlayBoard.width; ++column){
-                    let position = this.grid[row][column];
-                    if(typeof position !== "undefined" && position){
-                        let hexa = cc.instantiate(this.hexagonPrefab);
-                        if(hexa){
-                            hexa.setContentSize(this.sizeHexagonOnBoard);
-                            hexa.setPosition(position);
-                            this.node.addChild(hexa);
-                        } 
-                    }
-                }
-            }
+            for(let row = 0; row <= (~~this.sizePlayBoard.height / 2); ++row)
+                for(let column = 0; column < this.sizePlayBoard.width; ++column)
+                    this.createHexagonsAt(row, column);
         }
     },
 
@@ -84,17 +75,25 @@ cc.Class({
         return null;
     },
 
-    getDirectOfHexagon(direct, row, column){ //use "30 - 120 - 210 - 300 in direct param"
+    //@direct : top - lefttop - leftbot - bot - rightbot - righttop : represent for 6 edges
+    getDirectOfHexagon(direct, row, column, group){
+        let result = null;
         switch(direct){
-            case "30":
+            case "top":
+                
                 break;
-            case "120":
+            case "lefttop":
                 break;
-            case "210":
+            case "leftbot":
                 break;
-            case "300":
-                break;      
+            case "bot":
+                break;
+            case "rightbot":
+                break;
+            case "righttop":     
+                break;
         }
+        return result;
     },
 
     generateGridPosition(){
