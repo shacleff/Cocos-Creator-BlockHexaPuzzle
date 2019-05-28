@@ -242,7 +242,7 @@
       "__id__": 2
     },
     "_enabled": true,
-    "sizePlayBoard": {
+    "maxSizePlayBoard": {
       "__type__": "cc.Size",
       "width": 9,
       "height": 9
@@ -252,12 +252,73 @@
       "x": 0,
       "y": 500
     },
-    "numberHexagons": 3,
+    "ignoreFinal": false,
     "hexagonPrefab": {
       "__uuid__": "f60b8103-3bff-47b0-ac25-c3d6527a6d50"
     },
+    "hexagonGroupPrefab": {
+      "__uuid__": "306a535c-0832-4487-b463-8146b37bbe2b"
+    },
     "numberHexagonsGroup": 1,
-    "marginBetweenHexa": 2,
+    "totalNumberHexagons": {
+      "__id__": 7
+    },
+    "marginBetweenHexa": 0,
+    "maxDifferenceWidthHeight": 4,
+    "blockPrefab": {
+      "__uuid__": "075118bf-8d73-4535-a1a5-0955014f4649"
+    },
+    "blockTypes": [
+      {
+        "__type__": "cc.Color",
+        "r": 241,
+        "g": 241,
+        "b": 84,
+        "a": 255
+      },
+      {
+        "__type__": "cc.Color",
+        "r": 224,
+        "g": 75,
+        "b": 75,
+        "a": 255
+      },
+      {
+        "__type__": "cc.Color",
+        "r": 100,
+        "g": 224,
+        "b": 248,
+        "a": 255
+      },
+      {
+        "__type__": "cc.Color",
+        "r": 126,
+        "g": 243,
+        "b": 104,
+        "a": 255
+      }
+    ],
+    "numberPieces": {
+      "__id__": 8
+    },
+    "numberBlockEachPieces": {
+      "__id__": 9
+    },
     "_id": "a7dVHv04BEvbYyIYw2UY+R"
+  },
+  {
+    "__type__": "Range",
+    "min": 15,
+    "max": 20
+  },
+  {
+    "__type__": "Range",
+    "min": 2,
+    "max": 3
+  },
+  {
+    "__type__": "Range",
+    "min": 4,
+    "max": 7
   }
 ]
