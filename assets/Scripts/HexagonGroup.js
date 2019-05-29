@@ -15,6 +15,7 @@ cc.Class({
 
     properties: {
         hexagons: [],    //Hexagon object array
+        pieces: []  //Piece objects
     },
 
     onLoad () {

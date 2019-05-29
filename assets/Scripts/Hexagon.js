@@ -32,6 +32,10 @@ cc.Class({
             default: null,
             visible: false
         },
+        shadow:{
+            default: null,
+            visible: false,
+        },
     },
     // LIFE-CYCLE CALLBACKS:
 
@@ -72,15 +76,31 @@ cc.Class({
                 //     hexagon.node.runAction(cc.repeatForever(cc.fadeIn(1), cc.fadeOut(1)));
                 // }
                 //end Test
-
-            }else{
-                cc.log("group is null");
             }
         }, this)
     },
 
     setGroup(hexagroup){
         this.group = hexagroup;
+    },
+    
+    createShadowOn(prefab){
+        this.shadow = cc.instantiate(prefab);
+        this.shadow.setPosition(0,0);
+        this.shadow.setContentSize(this.node.getContentSize());
+        this.node.addChild(this.shadow);
+        this.shadow.opacity = 0;
+    },
+    setShadow(spriteFrame){
+        if(this.shadow && this.shadow.opacity == 0){
+            let sprite = this.shadow.getComponent(cc.Sprite);
+            if(sprite)sprite.spriteFrame = spriteFrame;
+            this.shadow.setContentSize(this.node.getContentSize());
+            this.shadow.opacity = 100;
+        }
+    },
+    hideShadow(){
+        this.shadow.opacity = 0;
     }
 
 });
