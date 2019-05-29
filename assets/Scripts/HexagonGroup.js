@@ -14,7 +14,7 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-        hexagons: []    //Hexagon object array
+        hexagons: [],    //Hexagon object array
     },
 
     onLoad () {

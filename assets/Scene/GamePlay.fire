@@ -263,7 +263,7 @@
     "totalNumberHexagons": {
       "__id__": 7
     },
-    "marginBetweenHexa": 0,
+    "marginBetweenHexa": -1,
     "maxDifferenceWidthHeight": 4,
     "blockPrefab": {
       "__uuid__": "075118bf-8d73-4535-a1a5-0955014f4649"

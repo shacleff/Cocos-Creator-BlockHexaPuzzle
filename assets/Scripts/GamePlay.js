@@ -9,6 +9,7 @@
 //  - [English] https://www.cocos2d-x.org/docs/creator/manual/en/scripting/life-cycle-callbacks.html
 
 import Hexagon from 'Hexagon.js';
+import {Piece} from 'Piece.js';
 
 export const EDirection = cc.Enum({
     TOP: 0,
@@ -16,7 +17,8 @@ export const EDirection = cc.Enum({
     TOP_LEFT: 2,
     BOT_LEFT: 3,
     TOP_RIGHT: 4,
-    BOT_RIGHT: 5     
+    BOT_RIGHT: 5,
+    COUNT: 6     
 });
 
 let Range = cc.Class({
@@ -83,6 +85,7 @@ cc.Class({
         this.maxHexagon = this.realSizePlay.width * this.realSizePlay.height;
         this.grid = [];
         this.listHexagonsGroup = [];    //HexagonsGroup array
+        this.listPieces = [];
         this.generateGridPosition();
         console.log("Number hexagon : " + this.numberHexagons);
         this.generateHexagons(this.numberHexagons, this.numberHexagonsGroup);
@@ -90,38 +93,75 @@ cc.Class({
     },
 
     generatePieceOnHexagons(){
-        let listColors = Array.from(this.blockTypes);
-        listColors = this.suffleArray(listColors);
+        //Color
+        let listColors = this.suffleArray(Array.from(this.blockTypes));
         let numberPieces = this.getRandom(this.numberPieces.min, this.numberPieces.max);
-        listColors.splice(numberPieces, listColors.length);
-        let totalBlocks = this.numberHexagons;
         console.log("Number Pieces : " + numberPieces);
-        let listHexagon = Array.from(this.listHexagonsGroup[0].hexagons);    //0 is Test!
+        //for number block each piece
+        let totalBlocks = this.numberHexagons;
+        let numberBlocksEachPieces = [];
         for(let i = 0; i < numberPieces - 1; ++i){
-            let color = listColors[listColors.length - 1];
-            let numberBlock = this.getRandom(this.numberBlockEachPieces.min, this.numberBlockEachPieces.max);
-            //generate block
-            for(let count = 0; count < numberBlock; ++count){
-                this.createBlockAtHexagonNode(listHexagon[listHexagon.length - 1], color);
-                listHexagon.pop();
+            let number = totalBlocks;
+            while(number > totalBlocks / 2){
+                number = this.getRandom(this.numberBlockEachPieces.min, this.numberBlockEachPieces.max);
             }
-            listColors.pop();
-            totalBlocks -= numberBlock;
+            numberBlocksEachPieces.push(number);
+            totalBlocks -= number;
         }
-        //final pieces with the rest
-        listHexagon.forEach(hexagon =>{
-            this.createBlockAtHexagonNode(hexagon, listColors[0]);
-        }, this);
+        numberBlocksEachPieces.push(totalBlocks);   //final
+        console.log("Number blocks each piece : " + numberBlocksEachPieces);
+        //for start point generate
+        let startPositionGen = [];
+        for(let i = 0; i < numberPieces;){
+            let randomRow = this.getRandom(0,this.realSizePlay.width - 1);
+            let randomCol = this.getRandom(0,this.realSizePlay.height - 1);
+            // cc.debug("ads");
+            let used = false;
+            for(let i in startPositionGen){
+                let pos = startPositionGen[i];
+                if(pos.row == randomRow && pos.column == randomCol){
+                    used = true;
+                    break;
+                }
+            }
+            if(!used){
+                let aroundAvaiable = this.getNumberDirectionAvaiableForBlock(randomRow, randomCol);
+                if(aroundAvaiable.length >= 6 - numberPieces + 1){
+                    let position = {row: randomRow, column: randomCol};
+                    startPositionGen.push(position);
+                    ++i;
+                }
+            }
+        }
+        for(let i in startPositionGen)
+            console.log("Start Pos : " + startPositionGen[i].row + " - " + startPositionGen[i].column);
+        //generate
+        this.listHexagonsGroup.forEach(group=>{ 
+            for(let i = 0; i < numberPieces; ++i){
+                let piece = new Piece;
+                this.listPieces.push(piece);
+                let color = listColors[i];
+                let number = numberBlocksEachPieces[i];
+                let start = startPositionGen[i];
+                let hexagon = group.getHexagonAt(start.row, start.column);
+                if(typeof hexagon != "undefined"){
+                    for(let i = 0; i < 1; ++i){
+                        let block = this.createBlockAtHexagonNode(hexagon, color);
+                        piece.blocks.push(block);
+                    }
+                }
+            }
+        }, this)
     },
 
     //@param : hexagon : is a Hexagon object 
     createBlockAtHexagonNode(hexagon, color){
-        let piece = cc.instantiate(this.blockPrefab);
-        piece.color = color;
-        piece.setPosition(hexagon.node.position);
-        piece.setContentSize(this.sizeHexagonOnBoard.width * 0.9, this.sizeHexagonOnBoard.height * 0.9);
-        this.node.addChild(piece);
-        return piece;
+        let block = cc.instantiate(this.blockPrefab);
+        block.color = color;
+        block.setPosition(hexagon.node.position);
+        block.setContentSize(this.sizeHexagonOnBoard.width * 0.9, this.sizeHexagonOnBoard.height * 0.9);
+        this.node.addChild(block);
+        return block;
     },
 
     generateHexagons(numberObject, numberGroup){
@@ -235,6 +275,35 @@ cc.Class({
             }
         }
         return array;
+    },
+
+    getNumberDirectionAvaiableForBlock(row, column){
+        let directionAvaiable = [];     //list position for each directiojn
+        let temp = [];
+        for(let i = 0; i < EDirection.COUNT; ++i){
+            temp.push(this.getHexagonPosAtDirection(i, row, column));
+        }
+        for(let groundI in this.listHexagonsGroup){
+            let group = this.listHexagonsGroup[groundI];
+            if(group){
+                for(let hexaI in group.hexagons){
+                    let hexagon = group.hexagons[hexaI];
+                    let i = 0;
+                    for(; i < temp.length; ++i){
+                        let check = temp[i];
+                        if(check.row == hexagon.row && check.column == hexagon.column){
+                            directionAvaiable.push(check);
+                            break;
+                        }
+                    }
+                    temp.splice(i, 1);
+                    if(temp.length == 0)break;
+                }
+            }
+            if(temp.length == 0)break;
+        }
+
+        return directionAvaiable;
     },
 
     isHexagonCreatedAt(row, column){
