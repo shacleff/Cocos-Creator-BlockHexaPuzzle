@@ -10,11 +10,24 @@ export var Piece = cc.Class({
         this.positionInGameBoard = cc.v2(9999,9999);
     },
 
+    pushBlock(block){
+        this.blocks.push(block);
+        let blockCom = block.getComponent('Block');
+        blockCom.piece = this;
+    },
+
     moveBy(offset){
         this.blocks.forEach(block =>{
             block.x += offset.x;
             block.y += offset.y;
+            block.zIndex = 10;
         }, this);
+    },
+
+    setZindexAll(value){
+        this.blocks.forEach(block =>{
+            block.zIndex = value;
+        });
     },
 
     revertToPieces(duration){
@@ -26,7 +39,9 @@ export var Piece = cc.Class({
             offset = this.positionPiecesArea.sub(this.blocks[0].position);
         }
         this.blocks.forEach(block=>{
-            block.runAction(cc.moveBy(duration, offset));
+            block.runAction(cc.sequence(cc.moveBy(duration, offset), cc.callFunc(()=>{
+                block.zIndex = 0;
+            }, this)));
         }, this);
     },
 

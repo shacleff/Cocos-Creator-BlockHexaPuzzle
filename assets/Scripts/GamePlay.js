@@ -103,37 +103,14 @@ cc.Class({
         let numberBlocksEachPieces = [];
         for(let i = 0; i < numberPieces - 1; ++i){
             let number = totalBlocks;
-            while(number > totalBlocks / 2){
+            // while(number > totalBlocks / 2){
                 number = this.getRandom(this.numberBlockEachPieces.min, this.numberBlockEachPieces.max);
-            }
+            // }
             numberBlocksEachPieces.push(number);
             totalBlocks -= number;
         }
         numberBlocksEachPieces.push(totalBlocks);   //final
         console.log("Number blocks each piece : " + numberBlocksEachPieces);
-        //for start point generate
-        let startPositionGen = [];
-        for(let i = 0; i < numberPieces;){
-            let randomIndex = ~~(Math.random() * this.listPositionAvaiable.length);
-            let random = this.listPositionAvaiable[randomIndex];
-            let used = false;
-            for(let pos of startPositionGen){
-                if(pos.row == random.row && pos.column == random.column){
-                    used = true;
-                    break;
-                }
-            }
-            if(!used){
-                let aroundAvaiable = this.getNumberDirectionAvaiableForBlock(random.row, random.column);
-                if(aroundAvaiable.length <= 6 - numberPieces + 1)
-                {
-                    startPositionGen.push(random);
-                    ++i;
-                }
-            }
-        }
-        for(let pos of startPositionGen)
-            console.log("Start Pos : " + pos.row + " - " + pos.column);
         //generate
         for(let group of this.listHexagonsGroup){   //current is 1 group
             for(let i = 0; i < numberPieces; ++i){
@@ -141,42 +118,55 @@ cc.Class({
                 group.pieces.push(piece);
             }
         }
-        totalBlocks = this.numberHexagons;
-        for(let group of this.listHexagonsGroup){   //current is 1 group
-            while(true){
-                for(let i = 0; i < group.pieces.length; ++i){
-                    let piece = group.pieces[i];
-                    if(numberBlocksEachPieces[i] > 0){
-                        let start = startPositionGen[i];
-                        let createAt = this.getHexagonPosAtDirection(~~(Math.random()*EDirection.COUNT),start.row, start.column);
-                        if(createAt){
-                            let hexagon = group.getHexagonAt(createAt.row, createAt.column);
-                            if(hexagon && hexagon.block == null){
-                                console.log("Create Block at : " + createAt.row + " - " + createAt.column);
-                                let block = this.createBlockAtHexagonNode(hexagon, listTypes[i]);
-                                let blockCom = block.getComponent('Block');
-                                if(typeof blockCom != "undefined" && blockCom){
-                                    blockCom.piece = piece;
-                                }
-                                if(piece.blocks.length == 0){
-                                    piece.positionInGameBoard = hexagon.node.position;
-                                }
-                                piece.blocks.push(block);
-                                startPositionGen[i] = createAt;
-                                numberBlocksEachPieces[i] = numberBlocksEachPieces[i] - 1;
-                                --totalBlocks;
-                            }
-                        }
-                    }
-                    if(totalBlocks <= 0)break;
-                }
-                if(totalBlocks <= 0)break;
+        
+        let posAvaiable = this.suffleArray(Array.from(this.listPositionAvaiable));
+        let isPosAvaible = pos =>{
+            let find = posAvaiable.findIndex(element =>{return element.row == pos.row && element.column == pos.column;});
+            if(find != -1)return true;
+            return false;
+        }
+        let removeFromArray = (pos, array) =>{
+            let find = array.findIndex(element =>{return element.row == pos.row && element.column == pos.column;});
+            if(find != -1)array.splice(find, 1);
+        }
+        let getAroundAvaiable = startPos => {
+            let result = [];
+            for(let d = 0; d < EDirection.COUNT; d++){
+                let pos = this.getHexagonPosAtDirection(d, startPos.row, startPos.column);
+                if(isPosAvaible(pos))result.push(pos);
             }
+            return result;
+        }
+        for(let group of this.listHexagonsGroup){
+            for(let i = 0; i < group.pieces.length; ++i){
+                let positionUsed = [];
+                let piece = group.pieces[i];
+                let createAt = posAvaiable[posAvaiable.length - 1];
+                removeFromArray(createAt, posAvaiable);
+                positionUsed.push(createAt);
+                let firstBlock = this.createBlockAtHexagonNode(group.getHexagonAt(createAt.row, createAt.column), listTypes[i]);
+                piece.pushBlock(firstBlock);
+                for(let count = 1; count < numberBlocksEachPieces[i]; ++count){
+                    let startPos = positionUsed[~~(Math.random() * positionUsed.length)];
+                    let createdPositions = getAroundAvaiable(startPos);
+                    if(createdPositions.length > 0){
+                        createAt = createdPositions[~~(Math.random() * createdPositions.length)];
+                        removeFromArray(createAt, posAvaiable);
+                        positionUsed.push(createAt);
+                        let newBlock = this.createBlockAtHexagonNode(group.getHexagonAt(createAt.row, createAt.column), listTypes[i]); 
+                        piece.pushBlock(newBlock);
+                    }
+                }
+                positionUsed.length = 0;
+            }
+            //check fill
+            
         }
 
     },
 
     //@param : hexagon : is a Hexagon object 
+    //@Return : a node object which contains Block component
     createBlockAtHexagonNode(hexagon, spriteFrame){
         let block = cc.instantiate(this.blockPrefab);
         block.getComponent(cc.Sprite).spriteFrame = spriteFrame;
