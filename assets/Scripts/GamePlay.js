@@ -9,7 +9,7 @@
 //  - [English] https://www.cocos2d-x.org/docs/creator/manual/en/scripting/life-cycle-callbacks.html
 
 import Hexagon from 'Hexagon.js';
-import {Piece} from 'Piece.js';
+import {ActionHandler} from 'ActionHandler.js';
 
 export const EDirection = cc.Enum({
     TOP: 0,
@@ -54,6 +54,10 @@ cc.Class({
         marginBetweenHexa: 5,
         maxDifferenceWidthHeight: 4,
         //pieces - blocks
+        piecePrefab:{
+            default: null,
+            type: cc.Prefab
+        },
         blockPrefab:{
             default: null,
             type: cc.Prefab
@@ -69,7 +73,8 @@ cc.Class({
         numberBlockEachPieces : {
             type: Range,
             default: null
-        }
+        },
+        maxBetweenPieces : 5,
         
     },
 
@@ -90,6 +95,28 @@ cc.Class({
         console.log("Number hexagon : " + this.numberHexagons);
         this.generateHexagons(this.numberHexagons, this.numberHexagonsGroup);
         this.generatePieceOnHexagons();
+        this.putPiecesToSelectionBar();
+    },
+
+    putPiecesToSelectionBar(){
+        let selectionBar = this.node.getChildByName('Hex_Selection_bar');
+        if(selectionBar){
+            let barCom = selectionBar.getComponent('SelectionBar');
+            if(barCom){
+                barCom.generateGrid();
+                this.listHexagonsGroup.forEach(group=>{
+                    for(let piece of group.pieces){
+                        piece.positionInGameBoard = cc.v2(9999,9999);
+                        barCom.push(piece.getComponent('Piece'));
+                        piece.revertToPieces(0, true);
+                        ActionHandler.instance.scalePiece(piece, ActionHandler.instance.selectionScale);
+                    }
+                    for(let hexa of group.hexagons){
+                        hexa.block = null;
+                    }
+                });
+            }
+        }
     },
 
     generatePieceOnHexagons(){
@@ -114,8 +141,9 @@ cc.Class({
         //generate
         for(let group of this.listHexagonsGroup){   //current is 1 group
             for(let i = 0; i < numberPieces; ++i){
-                let piece = new Piece;
-                group.pieces.push(piece);
+                let piece = cc.instantiate(this.piecePrefab);
+                this.node.addChild(piece);
+                group.pieces.push(piece.getComponent('Piece'));
             }
         }
         
@@ -159,8 +187,30 @@ cc.Class({
                 }
                 positionUsed.length = 0;
             }
-            //check fill
-            
+            //fill empty hexagons
+            while(posAvaiable.length > 0){
+                for(let i = 0; i < posAvaiable.length;){
+                    let checkPos = posAvaiable[i];
+                    let aroundTypes = [];
+                    for(let d = 0; d < EDirection.COUNT; d++){
+                        let pos = this.getHexagonPosAtDirection(d, checkPos.row, checkPos.column);
+                        let hexagon = group.getHexagonAt(pos.row, pos.column);
+                        if(hexagon && hexagon.block){
+                            let sprite = hexagon.block.getComponent(cc.Sprite);
+                            if(sprite) aroundTypes.push(sprite.spriteFrame);
+                        }
+                    }
+                    if(aroundTypes.length > 0){
+                        let type = aroundTypes[~~(Math.random() * aroundTypes.length)];
+                        if(type){
+                            let newBlock = this.createBlockAtHexagonNode(group.getHexagonAt(checkPos.row, checkPos.column), type);
+                            removeFromArray(checkPos, posAvaiable);
+                            let piece = group.getPiece(type);
+                            if(piece) piece.pushBlock(newBlock);
+                        }else ++i;
+                    }else ++i;
+                }
+            }
         }
 
     },
@@ -226,16 +276,18 @@ cc.Class({
                                 hexagonsGroupCom.push(hexagon);
                                 --numberObjectTemp;
                             }
-                        }else if(hexagonsGroupCom.getNumberHexagons() == 1){
-                            if(numberObjectTemp > 6)generate(hexagonsGroupCom.hexagons[0], 6);
+                        }else {
+                            let randomStart = hexagonsGroupCom.hexagons[~~(Math.random() * hexagonsGroupCom.hexagons.length - 1) + 1];
+                            if(randomStart)generate(randomStart, 1);
+                            else if(numberObjectTemp > 6)generate(hexagonsGroupCom.hexagons[0], 6);
                             else generate(hexagonsGroupCom.hexagons[0], numberObjectTemp);
-                        }else{
+                        }//else{
                             // console.log("con lai : " + numberObjectTemp);
-                            let randomStart = hexagonsGroupCom.hexagons[~~(Math.random() * hexagonsGroupCom.hexagons.length - 1) + 1]
-                            if(randomStart){
-                                generate(randomStart, 1);
-                            }
-                        }
+                        //     let randomStart = hexagonsGroupCom.hexagons[~~(Math.random() * hexagonsGroupCom.hexagons.length - 1) + 1]
+                        //     if(randomStart){
+                        //         generate(randomStart, 1);
+                        //     }
+                        // }
                     }
                 }
             }
@@ -411,46 +463,56 @@ cc.Class({
 
     //@Return : list hexagon object
     isPieceFit(piece){
-        if(piece instanceof Piece){
-            this.hideAllShadow();
-            let result = false;
-            let findHexagonNearVec2Position = (position , distanceFit) =>{
-                try{
-                    for(let hexPos of this.listPositionAvaiable){
-                        let readlPosition = this.grid[hexPos.row][hexPos.column];
-                        if(readlPosition.sub(position).mag() <= distanceFit){
-                            for(let group of this.listHexagonsGroup){
-                                let result = group.getHexagonAt(hexPos.row, hexPos.column);
-                                if(result!=null)return result;
-                            }
-                            return null;
+        let result = false;
+        let findHexagonNearVec2Position = (position , distanceFit) =>{
+            try{
+                for(let hexPos of this.listPositionAvaiable){
+                    let readlPosition = this.grid[hexPos.row][hexPos.column];
+                    if(readlPosition.sub(position).mag() <= distanceFit){
+                        for(let group of this.listHexagonsGroup){
+                            let result = group.getHexagonAt(hexPos.row, hexPos.column);
+                            if(result!=null)return result;
                         }
+                        return null;
                     }
-                }catch(error){}
-                return null;
-            };
-
-            let listHexa = [];
-            for(let i = 0; i < piece.blocks.length; ++i){
-                let blockPos = piece.blocks[i].position;
-                let hexagon = findHexagonNearVec2Position(blockPos, this.sizeHexagonOnBoard.width / 2);
-                if(hexagon)listHexa.push(hexagon);
-            }
-            if(listHexa.length == piece.blocks.length && listHexa.length > 0){
-                let sprite = piece.blocks[0].getComponent(cc.Sprite);
-                if(sprite){
-                    listHexa.forEach(hexa =>{
-                        hexa.setShadow(sprite.spriteFrame);
-                    });
                 }
-                return listHexa;
-            }
+            }catch(error){}
+            return null;
+        };
+
+        let listHexa = [];
+        for(let i = 0; i < piece.blocks.length; ++i){
+            let blockPos = this.convertToCanvasPosition(piece.blocks[i].parent, piece.blocks[i].position);
+            let hexagon = findHexagonNearVec2Position(blockPos, this.sizeHexagonOnBoard.width / 2 - 1);
+            if(hexagon && hexagon.block == null)listHexa.push(hexagon);
         }
-        return [];
+        if(listHexa.length == piece.blocks.length && piece.blocks.length > 0){
+            return listHexa;
+        }
+        listHexa.length = 0;
+   
+        return [];     
+    },
+
+    releasePieceFromHexagon(piece){
+        this.listHexagonsGroup.forEach(group =>{
+            if(piece.blocks.length > 0)
+                group.releaseBlockOnHexa(piece.blocks[0].getComponent(cc.Sprite).spriteFrame);
+        }, this);
     },
 
     setToNewHexagons(piece, listHexagons){
-        piece.positionInGameBoard = listHexagons[0].node.position;
+        piece.positionInGameBoard = this.convertToCanvasPosition(listHexagons[0].node.parent, listHexagons[0].node.position);
+        for(let i = 0; i < listHexagons.length; ++i){
+            listHexagons[i].block = piece.blocks[i];
+        }
+        //shadow
+        let sprite = piece.blocks[0].getComponent(cc.Sprite);
+        if(sprite){
+            listHexagons.forEach(hexa =>{
+                hexa.setShadow(sprite.spriteFrame);
+            });
+        }
     },
 
     hideAllShadow(){
@@ -459,6 +521,11 @@ cc.Class({
                 hexagon.hideShadow();
             });
         });
+    },
+
+    convertToCanvasPosition(parentNode, position){
+        let checkPos = parentNode.convertToWorldSpaceAR(position);
+        return this.node.convertToNodeSpaceAR(checkPos);
     },
 
     getRandom(min, max){

@@ -108,6 +108,7 @@
     },
     "_enabled": true,
     "piece": null,
+    "durationMove": 0.1,
     "_id": ""
   },
   {

@@ -28,9 +28,10 @@ cc.Class({
             default: -1,
             visible: false
         },
-        block: {
+        block: {    
             default: null,
-            visible: false
+            visible: false,
+            type: cc.Node
         },
         shadow:{
             default: null,

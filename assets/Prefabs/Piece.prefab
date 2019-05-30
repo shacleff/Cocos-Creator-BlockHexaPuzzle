@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Hexagon",
+    "_name": "Piece",
     "_objFlags": 0,
     "_parent": null,
     "_children": [],
@@ -22,26 +22,23 @@
     "_components": [
       {
         "__id__": 2
-      },
-      {
-        "__id__": 3
       }
     ],
     "_prefab": {
-      "__id__": 4
+      "__id__": 3
     },
     "_opacity": 255,
     "_color": {
       "__type__": "cc.Color",
-      "r": 173,
-      "g": 172,
-      "b": 170,
+      "r": 255,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 454,
-      "height": 392
+      "width": 0,
+      "height": 0
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -50,8 +47,8 @@
     },
     "_position": {
       "__type__": "cc.Vec3",
-      "x": 264.735,
-      "y": 828.732,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_scale": {
@@ -74,46 +71,24 @@
     "_id": ""
   },
   {
-    "__type__": "cc.Sprite",
+    "__type__": "7b80b5lnnRMQbCy+xqjBSPU",
     "_name": "",
     "_objFlags": 0,
     "node": {
       "__id__": 1
     },
     "_enabled": true,
-    "_materials": [],
-    "_srcBlendFactor": 770,
-    "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "472bf011-4a47-455c-818d-d32d059b6d4a"
-    },
-    "_type": 0,
-    "_sizeMode": 1,
-    "_fillType": 0,
-    "_fillCenter": {
+    "blocks": [],
+    "positionPiecesArea": {
       "__type__": "cc.Vec2",
       "x": 0,
       "y": 0
     },
-    "_fillStart": 0,
-    "_fillRange": 0,
-    "_isTrimmedMode": true,
-    "_atlas": null,
-    "_id": ""
-  },
-  {
-    "__type__": "9a406xQdGdAA5xpVzQLNjms",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 1
+    "positionInGameBoard": {
+      "__type__": "cc.Vec2",
+      "x": 9999,
+      "y": 9999
     },
-    "_enabled": true,
-    "group": null,
-    "row": -1,
-    "column": -1,
-    "block": null,
-    "shadow": null,
     "_id": ""
   },
   {
@@ -122,9 +97,9 @@
       "__id__": 1
     },
     "asset": {
-      "__uuid__": "f60b8103-3bff-47b0-ac25-c3d6527a6d50"
+      "__uuid__": "e7a688f4-1345-46c9-8217-6ebf496d2db6"
     },
-    "fileId": "91xB8nnlFLsaN6ckRA+D6N",
+    "fileId": "61u8X9zA9P1Z5c6E2APJgv",
     "sync": false
   }
 ]

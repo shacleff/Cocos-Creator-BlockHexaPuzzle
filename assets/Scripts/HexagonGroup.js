@@ -26,6 +26,33 @@ cc.Class({
             return element.row == row && element.column == column;
         }, this);
     },
+    //@Param : type : cc.SpriteFrame,
+    getPiece(type){
+        for(let piece of this.pieces){
+            if(piece.blocks.length > 0){
+                let sprite = piece.blocks[0].getComponent(cc.Sprite)
+                if(sprite){
+                    let frame = sprite.spriteFrame;
+                    if(frame && frame.isValid && frame.name == type.name)
+                        return piece;
+                }
+            }
+        }
+        return null;
+    },
+    //@Param : type : cc.SpriteFrame,
+    releaseBlockOnHexa(type){
+        this.hexagons.forEach(hexagon =>{
+            if(hexagon.block){
+                let sprite = hexagon.block.getComponent(cc.Sprite);
+                if(sprite){
+                    let frame = sprite.spriteFrame;
+                    if(frame && frame.isValid && frame.name == type.name)
+                        hexagon.block = null;
+                }
+            }
+        });
+    },
 
     moveBy(offset){
         this.hexagons.forEach(element => {

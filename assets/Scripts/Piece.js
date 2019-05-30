@@ -1,5 +1,7 @@
-export var Piece = cc.Class({
-    name : "Piece",
+import {ActionHandler} from 'ActionHandler.js';
+
+cc.Class({
+    extends : cc.Component,
     properties:{
         blocks: [], //node
         positionPiecesArea: cc.v2(0,0),     //anchor to first block in array ( [0] )
@@ -7,21 +9,29 @@ export var Piece = cc.Class({
     },
 
     onLoad(){
+        this.sub = cc.v2(0,0);
         this.positionInGameBoard = cc.v2(9999,9999);
     },
 
     pushBlock(block){
+        if(this.blocks.length == 0){
+            this.node.position = block.position.clone();
+            this.sub = block.position.clone();
+            block.position = cc.v2(0,0);
+        }else{
+            block.position =  block.position.sub(this.sub);
+        }
+        block.removeFromParent(false);
+        this.node.addChild(block);
         this.blocks.push(block);
         let blockCom = block.getComponent('Block');
         blockCom.piece = this;
     },
 
     moveBy(offset){
-        this.blocks.forEach(block =>{
-            block.x += offset.x;
-            block.y += offset.y;
-            block.zIndex = 10;
-        }, this);
+        ActionHandler.instance.scalePiece(this, 1);
+        this.node.position = this.node.position.add(offset);
+        this.node.zIndex = 10;
     },
 
     setZindexAll(value){
@@ -30,19 +40,23 @@ export var Piece = cc.Class({
         });
     },
 
-    revertToPieces(duration){
+    revertToPieces(duration, immediate){
         let offset = cc.v2(0,0);
         if(this.positionInGameBoard.x != 9999)
         {
-            offset = this.positionInGameBoard.sub(this.blocks[0].position);
+            offset = this.positionInGameBoard;
         }else{
-            offset = this.positionPiecesArea.sub(this.blocks[0].position);
+            offset = this.positionPiecesArea;
+            ActionHandler.instance.scalePiece(this, 0.5);
         }
-        this.blocks.forEach(block=>{
-            block.runAction(cc.sequence(cc.moveBy(duration, offset), cc.callFunc(()=>{
-                block.zIndex = 0;
+        if(immediate){
+            this.node.position = offset;
+            this.node.zIndex = 0;
+        }else{
+            this.node.runAction(cc.sequence(cc.moveTo(duration, offset), cc.callFunc(()=>{
+                this.node.zIndex = 0;
             }, this)));
-        }, this);
+        }    
     },
 
 })
