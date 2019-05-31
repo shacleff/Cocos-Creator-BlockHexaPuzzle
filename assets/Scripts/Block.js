@@ -56,8 +56,8 @@ cc.Class({
                 window.gamePlay.setToNewHexagons(this.piece, hexagonsAvaiable);
             }
             this.piece.revertToPieces(this.durationMove);
+            window.gamePlay.checkWin();
         }
         window.gamePlay.hideAllShadow();
-        console.log(this.piece.node.getContentSize());
     },
 });

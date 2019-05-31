@@ -13,6 +13,13 @@ cc.Class({
         this.positionInGameBoard = cc.v2(9999,9999);
     },
 
+    clear(){
+        for(let block of this.blocks){
+            block.destroy();
+        }
+        this.blocks.length = 0;
+    },
+
     pushBlock(block){
         if(this.blocks.length == 0){
             this.node.position = block.position.clone();
@@ -42,12 +49,18 @@ cc.Class({
 
     revertToPieces(duration, immediate){
         let offset = cc.v2(0,0);
+        let funcHandler = window.gamePlay.node.getChildByName('FunctionHandler');
         if(this.positionInGameBoard.x != 9999)
         {
+            ActionHandler.instance.scalePiece(this, 1);
             offset = this.positionInGameBoard;
+            if(funcHandler && !immediate){
+                funcHandler.getComponent('FunctionHandler').saveHistory(this, offset);
+            }
         }else{
             offset = this.positionPiecesArea;
-            ActionHandler.instance.scalePiece(this, 0.5);
+            window.gamePlay.releasePieceFromHexagon(this);   
+            ActionHandler.instance.scalePiece(this, ActionHandler.instance.selectionScale);
         }
         if(immediate){
             this.node.position = offset;

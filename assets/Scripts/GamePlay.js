@@ -21,11 +21,15 @@ export const EDirection = cc.Enum({
     COUNT: 6     
 });
 
-let Range = cc.Class({
+export let Range = cc.Class({
     name: "Range",
     properties:{
         min: 0,
         max: 0
+    },
+    set(range){
+        this.min = range.min;
+        this.max = range.max;
     }
 });
 
@@ -85,17 +89,67 @@ cc.Class({
         this.realSizePlay = cc.size(this.maxSizePlayBoard.width, this.maxSizePlayBoard.height);
         this.sizeGenerate = cc.size(0, 0);
         this.positionStartGenHexa = {row : this.realSizePlay.height / 2, column : this.realSizePlay.width / 2};
-        this.numberHexagons = this.getRandom(this.totalNumberHexagons.min, this.totalNumberHexagons.max);
-        this.rangeGenerateHexa = this.calculateRangeGenHexa();
         this.maxHexagon = this.realSizePlay.width * this.realSizePlay.height;
         this.grid = [];
         this.listPositionAvaiable = [];
         this.listHexagonsGroup = [];    //HexagonsGroup array
         this.generateGridPosition();
+        this.nextLevel();
+        this.createGame();
+    },
+
+    createGame(){
+        if(this.listPositionAvaiable.length > 0){
+            this.listPositionAvaiable.length = 0;
+        }
+        if(this.listHexagonsGroup.length > 0){
+            for(let group of this.listHexagonsGroup){
+                group.clear();
+                group.node.destroy();
+            }
+            this.listHexagonsGroup.length = 0;
+        }
+        this.numberHexagons = this.getRandom(this.totalNumberHexagons.min, this.totalNumberHexagons.max);
+        this.rangeGenerateHexa = this.calculateRangeGenHexa();
         console.log("Number hexagon : " + this.numberHexagons);
         this.generateHexagons(this.numberHexagons, this.numberHexagonsGroup);
         this.generatePieceOnHexagons();
         this.putPiecesToSelectionBar();
+    },
+
+    nextLevel(){
+        let levelChild = this.node.getChildByName('LevelManager');
+        if(levelChild){
+            let level = levelChild.getComponent('LevelManager').nextLevel();
+            this.totalNumberHexagons.set(level.difficult.totalBlocks);
+            this.numberPieces.set(level.difficult.pieces);
+            this.numberBlockEachPieces.set(level.difficult.piecesBlocks);
+        }
+    },
+
+    reset(){
+        this.node.getChildByName('FunctionHandler').getComponent('FunctionHandler').history.length = 0;
+        this.createGame();
+    },
+
+    checkWin(){
+        let isWin = true; 
+        for(let group of this.listHexagonsGroup){
+            for(let hexagon of group.hexagons){
+                if(hexagon.block == null){
+                    isWin = false;
+                    break;
+                }
+            }
+        }
+        if(isWin){
+            //do something
+            console.log("WIN");
+            this.node.runAction(cc.sequence(cc.delayTime(0.0), cc.callFunc(()=>{
+                this.nextLevel();
+                this.reset();
+            }, this)));
+        }
     },
 
     putPiecesToSelectionBar(){
@@ -108,7 +162,6 @@ cc.Class({
                     for(let piece of group.pieces){
                         piece.positionInGameBoard = cc.v2(9999,9999);
                         barCom.push(piece.getComponent('Piece'));
-                        piece.revertToPieces(0, true);
                         ActionHandler.instance.scalePiece(piece, ActionHandler.instance.selectionScale);
                     }
                     for(let hexa of group.hexagons){
@@ -138,7 +191,7 @@ cc.Class({
         }
         numberBlocksEachPieces.push(totalBlocks);   //final
         console.log("Number blocks each piece : " + numberBlocksEachPieces);
-        //generate
+
         for(let group of this.listHexagonsGroup){   //current is 1 group
             for(let i = 0; i < numberPieces; ++i){
                 let piece = cc.instantiate(this.piecePrefab);
@@ -146,73 +199,108 @@ cc.Class({
                 group.pieces.push(piece.getComponent('Piece'));
             }
         }
-        
-        let posAvaiable = this.suffleArray(Array.from(this.listPositionAvaiable));
-        let isPosAvaible = pos =>{
-            let find = posAvaiable.findIndex(element =>{return element.row == pos.row && element.column == pos.column;});
-            if(find != -1)return true;
-            return false;
-        }
-        let removeFromArray = (pos, array) =>{
-            let find = array.findIndex(element =>{return element.row == pos.row && element.column == pos.column;});
-            if(find != -1)array.splice(find, 1);
-        }
-        let getAroundAvaiable = startPos => {
-            let result = [];
-            for(let d = 0; d < EDirection.COUNT; d++){
-                let pos = this.getHexagonPosAtDirection(d, startPos.row, startPos.column);
-                if(isPosAvaible(pos))result.push(pos);
+         //generate
+        while(true)
+        {     
+            console.log("start gen"); 
+            let posAvaiable = this.suffleArray(Array.from(this.listPositionAvaiable));
+            let isPosAvaible = pos =>{
+                let find = posAvaiable.findIndex(element =>{return element.row == pos.row && element.column == pos.column;});
+                if(find != -1)return true;
+                return false;
             }
-            return result;
-        }
-        for(let group of this.listHexagonsGroup){
-            for(let i = 0; i < group.pieces.length; ++i){
-                let positionUsed = [];
-                let piece = group.pieces[i];
-                let createAt = posAvaiable[posAvaiable.length - 1];
-                removeFromArray(createAt, posAvaiable);
-                positionUsed.push(createAt);
-                let firstBlock = this.createBlockAtHexagonNode(group.getHexagonAt(createAt.row, createAt.column), listTypes[i]);
-                piece.pushBlock(firstBlock);
-                for(let count = 1; count < numberBlocksEachPieces[i]; ++count){
-                    let startPos = positionUsed[~~(Math.random() * positionUsed.length)];
-                    let createdPositions = getAroundAvaiable(startPos);
-                    if(createdPositions.length > 0){
-                        createAt = createdPositions[~~(Math.random() * createdPositions.length)];
-                        removeFromArray(createAt, posAvaiable);
-                        positionUsed.push(createAt);
-                        let newBlock = this.createBlockAtHexagonNode(group.getHexagonAt(createAt.row, createAt.column), listTypes[i]); 
-                        piece.pushBlock(newBlock);
-                    }
+            let removeFromArray = (pos, array) =>{
+                let find = array.findIndex(element =>{return element.row == pos.row && element.column == pos.column;});
+                if(find != -1)array.splice(find, 1);
+            }
+            let getAroundAvaiable = startPos => {
+                let result = [];
+                for(let d = 0; d < EDirection.COUNT; d++){
+                    let pos = this.getHexagonPosAtDirection(d, startPos.row, startPos.column);
+                    if(isPosAvaible(pos))result.push(pos);
                 }
-                positionUsed.length = 0;
+                return result;
             }
-            //fill empty hexagons
-            while(posAvaiable.length > 0){
-                for(let i = 0; i < posAvaiable.length;){
-                    let checkPos = posAvaiable[i];
-                    let aroundTypes = [];
-                    for(let d = 0; d < EDirection.COUNT; d++){
-                        let pos = this.getHexagonPosAtDirection(d, checkPos.row, checkPos.column);
-                        let hexagon = group.getHexagonAt(pos.row, pos.column);
-                        if(hexagon && hexagon.block){
-                            let sprite = hexagon.block.getComponent(cc.Sprite);
-                            if(sprite) aroundTypes.push(sprite.spriteFrame);
+            let arrayCreates = [];
+            function create(piece, hexagon, frame){
+                this.piece = piece;
+                this.hexagon = hexagon;
+                this.frame = frame;
+            }
+            for(let group of this.listHexagonsGroup){
+                for(let i = 0; i < group.pieces.length; ++i){
+                    let positionUsed = [];
+                    let piece = group.pieces[i];
+                    let createAt = posAvaiable[posAvaiable.length - 1];
+                    removeFromArray(createAt, posAvaiable);
+                    positionUsed.push(createAt);
+                    arrayCreates.push(new create(piece, group.getHexagonAt(createAt.row, createAt.column), listTypes[i]));
+                    for(let count = 1; count < numberBlocksEachPieces[i]; ++count){
+                        let startPos = positionUsed[~~(Math.random() * positionUsed.length)];
+                        let createdPositions = getAroundAvaiable(startPos);
+                        if(createdPositions.length > 0){
+                            createAt = createdPositions[~~(Math.random() * createdPositions.length)];
+                            removeFromArray(createAt, posAvaiable);
+                            positionUsed.push(createAt);
+                            arrayCreates.push(new create(piece, group.getHexagonAt(createAt.row, createAt.column), listTypes[i]));
                         }
                     }
-                    if(aroundTypes.length > 0){
-                        let type = aroundTypes[~~(Math.random() * aroundTypes.length)];
-                        if(type){
-                            let newBlock = this.createBlockAtHexagonNode(group.getHexagonAt(checkPos.row, checkPos.column), type);
-                            removeFromArray(checkPos, posAvaiable);
-                            let piece = group.getPiece(type);
-                            if(piece) piece.pushBlock(newBlock);
+                    positionUsed.length = 0;
+                }
+                
+                //fill empty hexagons
+                let getCreateAtHexaInCreates = pos =>{
+                    for(let create of arrayCreates){
+                        if(create.hexagon.row == pos.row && create.hexagon.column == pos.column)return create;
+                    }
+                    return null;
+                }
+                // cc.debug();
+                while(posAvaiable.length > 0){
+                    for(let i = 0; i < posAvaiable.length;){
+                        let checkPos = posAvaiable[i];
+                        let aroundTypes = [];
+                        let pieces = [];
+                        for(let d = 0; d < EDirection.COUNT; d++){
+                            let pos = this.getHexagonPosAtDirection(d, checkPos.row, checkPos.column);
+                            let c = getCreateAtHexaInCreates(pos);
+                            if(c){
+                                aroundTypes.push(c.frame);
+                                pieces.push(c.piece);
+                            }
+                        }
+                        if(aroundTypes.length > 0){
+                            let randIndex = ~~(Math.random() * aroundTypes.length);
+                            let type = aroundTypes[randIndex];
+                            let piece = pieces[randIndex];
+                            if(type){
+                                if(piece)arrayCreates.push(new create(piece, group.getHexagonAt(checkPos.row, checkPos.column), type));
+                                removeFromArray(checkPos, posAvaiable);
+                            }else ++i;
                         }else ++i;
-                    }else ++i;
+                    }
                 }
             }
+            let arrayTemp = Array.from(arrayCreates);
+            let isOK = true;
+            for(let create of arrayTemp){
+                let count = 0;
+                for(let createCheck of arrayCreates){
+                    if(create.frame.name == createCheck.frame.name)count++;
+                }
+                if(count < this.numberBlockEachPieces.min || count > this.numberBlockEachPieces.max){
+                    isOK = false;
+                    break;
+                }
+            }
+            if(isOK){
+                for(let create of arrayCreates){
+                    let newBlock = this.createBlockAtHexagonNode(create.hexagon, create.frame); 
+                    create.piece.pushBlock(newBlock);
+                }
+                break;
+            }
         }
-
     },
 
     //@param : hexagon : is a Hexagon object 
@@ -483,7 +571,7 @@ cc.Class({
         let listHexa = [];
         for(let i = 0; i < piece.blocks.length; ++i){
             let blockPos = this.convertToCanvasPosition(piece.blocks[i].parent, piece.blocks[i].position);
-            let hexagon = findHexagonNearVec2Position(blockPos, this.sizeHexagonOnBoard.width / 2 - 1);
+            let hexagon = findHexagonNearVec2Position(blockPos, this.sizeHexagonOnBoard.width / 2 - 10);
             if(hexagon && hexagon.block == null)listHexa.push(hexagon);
         }
         if(listHexa.length == piece.blocks.length && piece.blocks.length > 0){
@@ -513,6 +601,7 @@ cc.Class({
                 hexa.setShadow(sprite.spriteFrame);
             });
         }
+
     },
 
     hideAllShadow(){

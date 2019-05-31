@@ -8,11 +8,16 @@
 //  - [Chinese] https://docs.cocos.com/creator/manual/zh/scripting/life-cycle-callbacks.html
 //  - [English] https://www.cocos2d-x.org/docs/creator/manual/en/scripting/life-cycle-callbacks.html
 
+import {EDirection} from 'GamePlay.js';
 cc.Class({
     extends: cc.Component,
 
     properties: {
         grid:{
+            default : [],
+            visible : false,
+        },
+        piecesRect:{    //cc.Rect array
             default : [],
             visible : false,
         },
@@ -32,41 +37,29 @@ cc.Class({
         let randomPos = this.grid[~~(Math.random() * this.grid.length)];
         let position = window.gamePlay.convertToCanvasPosition(this.node, randomPos);
         piece.positionPiecesArea = position;
+        piece.revertToPieces(0, true);
 
-        let minPoint = null, maxPoint = null;
+        let game = window.gamePlay;
         for(let block of piece.blocks){
-            let pos = block.position.clone();
-            pos = window.gamePlay.convertToCanvasPosition(piece.node, pos);
-            pos.subSelf(piece.node.position.sub(position));
-            if(minPoint == null && maxPoint == null){
-                minPoint = pos;
-                maxPoint = cc.v2(pos.x + 1, pos.y + 1);
-            }else{
-                if(pos.x < minPoint.x)minPoint.x = pos.x;
-                else if(pos.x > maxPoint.x)maxPoint.x = pos.x;
+            let blockPos = block.position;
+            
+
+            for(let i = 0; i < EDirection.COUNT; i++){
                 
-                if(pos.y < minPoint.y)minPoint.y = pos.y
-                else if(pos.y > maxPoint.y)maxPoint.y = pos.y;
-            }   
+            }
         }
-        
-        //Test
-        let originalSizeHexagon = window.gamePlay.sizeHexagonOnBoard;
-        let sizeHexagon = cc.size(originalSizeHexagon.width / 2, originalSizeHexagon.height / 2);
-        maxPoint = cc.v2(maxPoint.x + sizeHexagon.width / 2, maxPoint.y + sizeHexagon.height / 2);
-        minPoint = cc.v2(minPoint.x - sizeHexagon.width / 2, minPoint.y - sizeHexagon.height / 2);
-        let graphics = window.gamePlay.getComponent(cc.Graphics);
-        graphics.moveTo(0,0);
-        console.log(`${minPoint.x} - ${minPoint.y} - ${maxPoint.x - minPoint.x} - ${maxPoint.y - minPoint.y}`)
-        graphics.rect(minPoint.x, minPoint.y, maxPoint.x - minPoint.x, maxPoint.y - minPoint.y);
-        graphics.stroke();
+    },
+
+    convertToBarPosition(parentNode, position){
+        let checkPos = parentNode.convertToWorldSpaceAR(position);
+        return this.node.convertToNodeSpaceAR(checkPos);
     },
 
     generateGrid(){
         let originalSizeHexagon = window.gamePlay.sizeHexagonOnBoard;
         let sizeHexagon = cc.size(originalSizeHexagon.width / 2, originalSizeHexagon.height / 2);
         this.grid.length = 0;
-        let center = cc.v2(0,0);
+        let center = cc.v2(0, 0);
         let distanceX = sizeHexagon.width * 0.75;
         let distanceY = sizeHexagon.height * 0.5;
         let distance2Row = sizeHexagon.height;
@@ -104,7 +97,7 @@ cc.Class({
             countColumn++;
         }
 
-        //For TEst
+        // For TEst
         // for(let pos of this.grid){
         //     let node =cc.instantiate(this.testPrefab);
         //     node.position = pos;

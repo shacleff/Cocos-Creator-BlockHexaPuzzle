@@ -21,6 +21,20 @@ cc.Class({
     onLoad () {
     },
 
+    onDestroy(){
+        console.log("destroy")
+        
+    },
+
+    clear(){
+        for(let hexa of this.hexagons)
+            hexa.node.destroy();
+        for(let piece of this.pieces)
+            piece.node.destroy();
+        this.hexagons.length = 0;
+        this.pieces.length = 0;
+    },
+
     getHexagonAt(row, column){
         return this.hexagons.find(element =>{
             return element.row == row && element.column == column;

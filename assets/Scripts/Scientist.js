@@ -23,19 +23,19 @@ cc.Class({
         this._armature = this._animation.armature();
     },
     onHexagonGroupisTrue(){
-// change a to b animation
+        // change a to b animation
         this._armature.animation.fadeIn("like", -1, -1, 0, NORMAL_ANIMATION_GROUP);
     },
     onGameOver(){
-    // change a to b animation
-    this._armature.animation.fadeIn("sad", -1, -1, 0, NORMAL_ANIMATION_GROUP);
+        // change a to b animation
+        this._armature.animation.fadeIn("sad", -1, -1, 0, NORMAL_ANIMATION_GROUP);
     },
     onHexagonGroupisFalse(){
-   // change a to b animation
-   this._armature.animation.fadeIn("angry", -1, -1, 0, NORMAL_ANIMATION_GROUP);
+        // change a to b animation
+        this._armature.animation.fadeIn("angry", -1, -1, 0, NORMAL_ANIMATION_GROUP);
     },
     start () {  
-      this._animation.buildArmature("idle");
+        this._animation.buildArmature("idle");
     },
     onPlay() {
         console.log('onPlay');
