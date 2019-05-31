@@ -31,8 +31,35 @@ cc.Class({
     push(piece){
         let randomPos = this.grid[~~(Math.random() * this.grid.length)];
         let position = window.gamePlay.convertToCanvasPosition(this.node, randomPos);
-        console.log(position);
         piece.positionPiecesArea = position;
+
+        let minPoint = null, maxPoint = null;
+        for(let block of piece.blocks){
+            let pos = block.position.clone();
+            pos = window.gamePlay.convertToCanvasPosition(piece.node, pos);
+            pos.subSelf(piece.node.position.sub(position));
+            if(minPoint == null && maxPoint == null){
+                minPoint = pos;
+                maxPoint = cc.v2(pos.x + 1, pos.y + 1);
+            }else{
+                if(pos.x < minPoint.x)minPoint.x = pos.x;
+                else if(pos.x > maxPoint.x)maxPoint.x = pos.x;
+                
+                if(pos.y < minPoint.y)minPoint.y = pos.y
+                else if(pos.y > maxPoint.y)maxPoint.y = pos.y;
+            }   
+        }
+        
+        //Test
+        let originalSizeHexagon = window.gamePlay.sizeHexagonOnBoard;
+        let sizeHexagon = cc.size(originalSizeHexagon.width / 2, originalSizeHexagon.height / 2);
+        maxPoint = cc.v2(maxPoint.x + sizeHexagon.width / 2, maxPoint.y + sizeHexagon.height / 2);
+        minPoint = cc.v2(minPoint.x - sizeHexagon.width / 2, minPoint.y - sizeHexagon.height / 2);
+        let graphics = window.gamePlay.getComponent(cc.Graphics);
+        graphics.moveTo(0,0);
+        console.log(`${minPoint.x} - ${minPoint.y} - ${maxPoint.x - minPoint.x} - ${maxPoint.y - minPoint.y}`)
+        graphics.rect(minPoint.x, minPoint.y, maxPoint.x - minPoint.x, maxPoint.y - minPoint.y);
+        graphics.stroke();
     },
 
     generateGrid(){
