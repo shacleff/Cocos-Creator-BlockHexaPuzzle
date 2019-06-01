@@ -229,29 +229,32 @@ cc.Class({
             }
             for(let group of this.listHexagonsGroup){
                 for(let i = 0; i < group.pieces.length; ++i){
-                    let positionUsed = [];
-                    let piece = group.pieces[i];
-                    let createAt = posAvaiable[posAvaiable.length - 1];
-                    removeFromArray(createAt, posAvaiable);
-                    positionUsed.push(createAt);
-                    arrayCreates.push(new create(piece, group.getHexagonAt(createAt.row, createAt.column), listTypes[i]));
-                    for(let count = 1; count < numberBlocksEachPieces[i]; ++count){
-                        let startPos = positionUsed[~~(Math.random() * positionUsed.length)];
-                        let createdPositions = getAroundAvaiable(startPos);
-                        if(createdPositions.length > 0){
-                            createAt = createdPositions[~~(Math.random() * createdPositions.length)];
-                            removeFromArray(createAt, posAvaiable);
-                            positionUsed.push(createAt);
-                            arrayCreates.push(new create(piece, group.getHexagonAt(createAt.row, createAt.column), listTypes[i]));
+                    if(posAvaiable.length > 0){
+                        let positionUsed = [];
+                        let piece = group.pieces[i];
+                        let createAt = posAvaiable[posAvaiable.length - 1];
+                        positionUsed.push(createAt);
+                        console.log(createAt);
+                        arrayCreates.push(new create(piece, group.getHexagonAt(createAt.row, createAt.column), listTypes[i]));
+                        removeFromArray(createAt, posAvaiable);
+                        for(let count = 1; count < numberBlocksEachPieces[i]; ++count){
+                            let startPos = positionUsed[~~(Math.random() * positionUsed.length)];
+                            let createdPositions = getAroundAvaiable(startPos);
+                            if(createdPositions.length > 0){
+                                createAt = createdPositions[~~(Math.random() * createdPositions.length)];
+                                positionUsed.push(createAt);
+                                arrayCreates.push(new create(piece, group.getHexagonAt(createAt.row, createAt.column), listTypes[i]));
+                                removeFromArray(createAt, posAvaiable);
+                            }
                         }
+                        positionUsed.length = 0;
                     }
-                    positionUsed.length = 0;
                 }
                 
                 //fill empty hexagons
                 let getCreateAtHexaInCreates = pos =>{
                     for(let create of arrayCreates){
-                        if(create.hexagon.row == pos.row && create.hexagon.column == pos.column)return create;
+                        if(create.hexagon && create.hexagon.row == pos.row && create.hexagon.column == pos.column)return create;
                     }
                     return null;
                 }
