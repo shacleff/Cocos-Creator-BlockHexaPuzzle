@@ -85,6 +85,7 @@ cc.Class({
     // LIFE-CYCLE CALLBACKS:
 
     start () {
+        this.isGenerating = true;
         window.gamePlay = this;
         this.realSizePlay = cc.size(this.maxSizePlayBoard.width, this.maxSizePlayBoard.height);
         this.sizeGenerate = cc.size(0, 0);
@@ -96,6 +97,7 @@ cc.Class({
         this.generateGridPosition();
         this.nextLevel();
         this.createGame();
+        this.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(()=>{this.isGenerating = false;}, this)));
     },
 
     createGame(){
@@ -128,8 +130,14 @@ cc.Class({
     },
 
     reset(){
-        this.node.getChildByName('FunctionHandler').getComponent('FunctionHandler').history.length = 0;
-        this.createGame();
+        if(!this.isGenerating){
+            this.isGenerating = true;
+            this.node.getChildByName('FunctionHandler').getComponent('FunctionHandler').history.length = 0;
+            this.createGame();
+            this.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(()=>{this.isGenerating = false;}, this)));
+        }else{
+            cc.log("BBoard is generating!");
+        }
     },
 
     checkWin(){
@@ -177,15 +185,20 @@ cc.Class({
         // let listTypes = this.suffleArray(Array.from(this.blockTypes));
         let listTypes = Array.from(this.blockTypes);
         let numberPieces = this.getRandom(this.numberPieces.min, this.numberPieces.max);
+        while(numberPieces * this.numberBlockEachPieces.min >= this.numberHexagons){
+            numberPieces = this.getRandom(this.numberPieces.min, this.numberPieces.max);
+        }
         console.log("Number Pieces : " + numberPieces);
         //for number block each piece
         let totalBlocks = this.numberHexagons;
         let numberBlocksEachPieces = [];
         for(let i = 0; i < numberPieces - 1; ++i){
             let number = totalBlocks;
-            // while(number > totalBlocks / 2){
-                number = this.getRandom(this.numberBlockEachPieces.min, this.numberBlockEachPieces.max);
-            // }
+            let compare = ~~(totalBlocks / (numberPieces - i));
+            while(number > compare){
+                if(compare >= this.numberBlockEachPieces.min) number = this.getRandom(this.numberBlockEachPieces.min, this.numberBlockEachPieces.max);
+                else number = this.numberBlockEachPieces.min;
+            }
             numberBlocksEachPieces.push(number);
             totalBlocks -= number;
         }
@@ -200,33 +213,42 @@ cc.Class({
             }
         }
          //generate
+        let posAvaiable = [];
+        let isPosAvaible = pos =>{
+            let find = posAvaiable.findIndex(element =>{return element.row == pos.row && element.column == pos.column;});
+            if(find != -1)return true;
+            return false;
+        }
+        let removeFromArray = (pos, array) =>{
+            let find = array.findIndex(element =>{return element.row == pos.row && element.column == pos.column;});
+            if(find != -1)array.splice(find, 1);
+        }
+        let getAroundAvaiable = startPos => {
+            let result = [];
+            for(let d = 0; d < EDirection.COUNT; d++){
+                let pos = this.getHexagonPosAtDirection(d, startPos.row, startPos.column);
+                if(isPosAvaible(pos))result.push(pos);
+            }
+            return result;
+        }
+        let arrayCreates = [];
+        function create(piece, hexagon, frame){
+            this.piece = piece;
+            this.hexagon = hexagon;
+            this.frame = frame;
+        }
+        let getCreateAtHexaInCreates = pos =>{
+            for(let create of arrayCreates){
+                if(create.hexagon && create.hexagon.row == pos.row && create.hexagon.column == pos.column)return create;
+            }
+            return null;
+        }
+
         while(true)
         {     
             console.log("start gen"); 
-            let posAvaiable = this.suffleArray(Array.from(this.listPositionAvaiable));
-            let isPosAvaible = pos =>{
-                let find = posAvaiable.findIndex(element =>{return element.row == pos.row && element.column == pos.column;});
-                if(find != -1)return true;
-                return false;
-            }
-            let removeFromArray = (pos, array) =>{
-                let find = array.findIndex(element =>{return element.row == pos.row && element.column == pos.column;});
-                if(find != -1)array.splice(find, 1);
-            }
-            let getAroundAvaiable = startPos => {
-                let result = [];
-                for(let d = 0; d < EDirection.COUNT; d++){
-                    let pos = this.getHexagonPosAtDirection(d, startPos.row, startPos.column);
-                    if(isPosAvaible(pos))result.push(pos);
-                }
-                return result;
-            }
-            let arrayCreates = [];
-            function create(piece, hexagon, frame){
-                this.piece = piece;
-                this.hexagon = hexagon;
-                this.frame = frame;
-            }
+            posAvaiable = this.suffleArray(Array.from(this.listPositionAvaiable));
+            arrayCreates.length = 0;
             for(let group of this.listHexagonsGroup){
                 for(let i = 0; i < group.pieces.length; ++i){
                     if(posAvaiable.length > 0){
@@ -234,7 +256,6 @@ cc.Class({
                         let piece = group.pieces[i];
                         let createAt = posAvaiable[posAvaiable.length - 1];
                         positionUsed.push(createAt);
-                        console.log(createAt);
                         arrayCreates.push(new create(piece, group.getHexagonAt(createAt.row, createAt.column), listTypes[i]));
                         removeFromArray(createAt, posAvaiable);
                         for(let count = 1; count < numberBlocksEachPieces[i]; ++count){
@@ -250,14 +271,7 @@ cc.Class({
                         positionUsed.length = 0;
                     }
                 }
-                
                 //fill empty hexagons
-                let getCreateAtHexaInCreates = pos =>{
-                    for(let create of arrayCreates){
-                        if(create.hexagon && create.hexagon.row == pos.row && create.hexagon.column == pos.column)return create;
-                    }
-                    return null;
-                }
                 // cc.debug();
                 while(posAvaiable.length > 0){
                     for(let i = 0; i < posAvaiable.length;){
