@@ -466,7 +466,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 58,
+      "width": 58.59,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -2141,7 +2141,7 @@
     },
     "_enabled": true,
     "grid": [],
-    "piecesRect": [],
+    "pieces": [],
     "margin": 10,
     "testPrefab": {
       "__uuid__": "f60b8103-3bff-47b0-ac25-c3d6527a6d50"

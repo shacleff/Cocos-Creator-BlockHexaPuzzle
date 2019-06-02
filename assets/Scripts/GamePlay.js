@@ -254,9 +254,10 @@ cc.Class({
                     if(posAvaiable.length > 0){
                         let positionUsed = [];
                         let piece = group.pieces[i];
+                        let type = listTypes[i >=  listTypes.length ? i - listTypes.length : i];
                         let createAt = posAvaiable[posAvaiable.length - 1];
                         positionUsed.push(createAt);
-                        arrayCreates.push(new create(piece, group.getHexagonAt(createAt.row, createAt.column), listTypes[i]));
+                        arrayCreates.push(new create(piece, group.getHexagonAt(createAt.row, createAt.column), type));
                         removeFromArray(createAt, posAvaiable);
                         for(let count = 1; count < numberBlocksEachPieces[i]; ++count){
                             let startPos = positionUsed[~~(Math.random() * positionUsed.length)];
@@ -264,7 +265,7 @@ cc.Class({
                             if(createdPositions.length > 0){
                                 createAt = createdPositions[~~(Math.random() * createdPositions.length)];
                                 positionUsed.push(createAt);
-                                arrayCreates.push(new create(piece, group.getHexagonAt(createAt.row, createAt.column), listTypes[i]));
+                                arrayCreates.push(new create(piece, group.getHexagonAt(createAt.row, createAt.column), type));
                                 removeFromArray(createAt, posAvaiable);
                             }
                         }
@@ -568,7 +569,6 @@ cc.Class({
 
     //@Return : list hexagon object
     isPieceFit(piece){
-        let result = false;
         let findHexagonNearVec2Position = (position , distanceFit) =>{
             try{
                 for(let hexPos of this.listPositionAvaiable){
