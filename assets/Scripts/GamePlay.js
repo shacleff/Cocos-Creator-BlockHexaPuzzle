@@ -80,19 +80,20 @@ cc.Class({
 
     // LIFE-CYCLE CALLBACKS:
     onLoad(){
+        window.gamePlay = this;
         this.actionHandler = this.node.getChildByName('ActionHandler').getComponent('ActionHandler');
+        this.grid = [];
+        this.listPositionAvaiable = [];
+        this.listHexagonsGroup = [];    //HexagonsGroup array
+        this.listHoles = [];
     },
 
     start () {
         this.isGenerating = true;
-        window.gamePlay = this;
         this.realSizePlay = cc.size(this.maxSizePlayBoard.width, this.maxSizePlayBoard.height);
         this.sizeGenerate = cc.size(0, 0);
         this.positionStartGenHexa = {row : this.realSizePlay.height / 2, column : this.realSizePlay.width / 2};
         this.maxHexagon = this.realSizePlay.width * this.realSizePlay.height;
-        this.grid = [];
-        this.listPositionAvaiable = [];
-        this.listHexagonsGroup = [];    //HexagonsGroup array
         this.generateGridPosition();
         this.nextLevel();
         this.createGame();
@@ -102,6 +103,10 @@ cc.Class({
     createGame(){
         if(this.listPositionAvaiable.length > 0){
             this.listPositionAvaiable.length = 0;
+        }
+        if(this.listHoles.length > 0){
+            for(let hole of this.listHoles)hole.destroy();
+            this.listHoles.length = 0;
         }
         if(this.listHexagonsGroup.length > 0){
             for(let group of this.listHexagonsGroup){
@@ -304,7 +309,6 @@ cc.Class({
             let numberHoles = this.getRandom(this.numberHoles.min, this.numberHoles.max);
             if(numberHoles > 0 && this.rateHole > 0){
                 if(~~(Math.random() * 100) <= this.rateHole){
-                    let posForHole = [];
                     let getSameTypesArond = (row, column, arraySameType) =>{
                         let around = [];
                         for(let i = 0; i < EDirection.COUNT; i++){
@@ -314,8 +318,9 @@ cc.Class({
                             }, this);
                             if(index != - 1)around.push(index);
                         }
-                        let count = 0;
+                        let count = -1;
                         if(around.length >= EDirection.COUNT){
+                            count = 0;
                             for(let pos of around){
                                 let find = arraySameType.findIndex(ele =>{return ele.row == pos.row && ele.column == pos.column;});
                                 if(find != -1)count++;
@@ -324,12 +329,6 @@ cc.Class({
                         console.log("Count : " + count);
                         return count;
                     };
-                    let createHoleRandArray = () =>{
-                        let randomIndex = ~~(Math.random() * posForHole.length);
-                        let position = posForHole[randomIndex];
-                        this.createBlockAtPos(position.row, position.column, this.hole);
-                        posForHole.splice(randomIndex, 1);
-                    };
                     for(let creation of arrayPieceCreations){
                         if(creation.piecePositions.length > this.numberBlockEachPieces.min){
                             creation.piecePositions = this.suffleArray(creation.piecePositions);
@@ -337,16 +336,25 @@ cc.Class({
                                 let start = creation.piecePositions[i];
                                 let sameAround = getSameTypesArond(start.row, start.column, creation.piecePositions);
                                 if(sameAround > 2 || sameAround == 0 || sameAround == 1){
-                                    posForHole.push(start);
-                                    break;
+                                    if(this.listHoles.length == 0){
+                                        let hole = this.createBlockAtPos(start.row, start.column, this.hole);
+                                        this.listHoles.push(hole);
+                                        creation.piecePositions.splice(i, 1);
+                                        numberHoles--;
+                                        break;
+                                    }
+                                    else if(~~(Math.random() * 100) <= this.rateHole){
+                                        let hole = this.createBlockAtPos(start.row, start.column, this.hole);
+                                        this.listHoles.push(hole);
+                                        creation.piecePositions.splice(i, 1);
+                                        numberHoles--;
+                                        break;
+                                    }
                                 }
+                                if(numberHoles == 0)break;
                             }
                         }
-                    }
-                    if(posForHole.length > 0){
-                        createHoleRandArray();
-                        for(let i = 1; i < numberHoles; i++)
-                            if(~~(Math.random() * 100) <= this.rateHole) createHoleRandArray();
+                        if(numberHoles == 0)break;
                     }
                 }
             }

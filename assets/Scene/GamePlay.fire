@@ -237,8 +237,8 @@
         "__id__": 25
       }
     ],
-    "currentDifficult": 5,
-    "currentLevel": -1,
+    "currentDifficult": 1,
+    "currentLevel": 1,
     "represent": {
       "__id__": 30
     },
@@ -403,7 +403,7 @@
     "numberHoles": {
       "__id__": 29
     },
-    "rateHole": 100
+    "rateHole": 30
   },
   {
     "__type__": "Range",
@@ -517,7 +517,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 58,
+      "width": 58.59,
       "height": 50.4
     },
     "_anchorPoint": {

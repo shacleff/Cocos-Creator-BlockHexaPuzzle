@@ -43,29 +43,31 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
+        currentDifficult : 1,
+        currentLevel : 1,
+        represent : cc.Node,
+        secondsToIncreDifficult : 30,
         difficults :{
             type: Difficult,
             default: []
         },
-        currentDifficult : 0,
-        currentLevel : -1,
-        represent : cc.Node,
-        secondsToIncreDifficult : 30
     },
     onLoad(){
         this.countTime = 0;
+        this.currentDifficult -= 2;
+        this.currentLevel -= 2;
     },
 
     nextLevel(){
-        if(this.countTime <= 30 * 1000 && this.currentDifficult < this.difficults.length - 1)
+        if(this.countTime <= this.secondsToIncreDifficult && this.currentDifficult < this.difficults.length - 1)
             this.currentDifficult++;
-        if(this.countTime > 30 * 1000 && this.currentDifficult > 0)
+        if(this.countTime > this.secondsToIncreDifficult && this.currentDifficult > 0)
             this.currentDifficult--;
-        console.log("difficult : " + this.currentDifficult);
+        console.log("difficult : " + (this.currentDifficult + 1) + " with at time : " + this.countTime);
         this.countTime = 0;
         let result = {
             levelNumber : ++this.currentLevel,
-            difficult : this.difficults[this.currentDifficult - 1]
+            difficult : this.difficults[this.currentDifficult]
         }
         if(this.represent){
             let label = this.represent.getChildByName('Number').getComponent(cc.Label);
