@@ -14,15 +14,9 @@ export var ActionHandler = cc.Class({
     properties: {
         selectionScale : 0.5
     },
-
-    statics:{
-        instance: null
-    },
-
     // LIFE-CYCLE CALLBACKS:
 
     onLoad () {
-        ActionHandler.instance = this;
     },
 
     scaleAllPiece(value){
@@ -44,3 +38,5 @@ export var ActionHandler = cc.Class({
         });
     }
 });
+
+

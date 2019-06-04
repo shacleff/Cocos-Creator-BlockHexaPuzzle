@@ -1,4 +1,3 @@
-import {ActionHandler} from 'ActionHandler.js';
 
 cc.Class({
     extends : cc.Component,
@@ -36,7 +35,7 @@ cc.Class({
     },
 
     moveBy(offset){
-        ActionHandler.instance.scalePiece(this, 1);
+        window.gamePlay.actionHandler.scalePiece(this, 1);
         this.node.position = this.node.position.add(offset);
         this.node.zIndex = 10;
     },
@@ -50,9 +49,10 @@ cc.Class({
     revertToPieces(duration, immediate){
         let offset = cc.v2(0,0);
         let funcHandler = window.gamePlay.node.getChildByName('FunctionHandler');
+        let actionHandler = window.gamePlay.actionHandler;
         if(this.positionInGameBoard.x != 9999)
         {
-            ActionHandler.instance.scalePiece(this, 1);
+            actionHandler.scalePiece(this, 1);
             offset = this.positionInGameBoard;
             if(funcHandler && !immediate){
                 funcHandler.getComponent('FunctionHandler').saveHistory(this, offset);
@@ -60,7 +60,7 @@ cc.Class({
         }else{
             offset = this.positionPiecesArea;
             window.gamePlay.releasePieceFromHexagon(this);   
-            ActionHandler.instance.scalePiece(this, ActionHandler.instance.selectionScale);
+            actionHandler.scalePiece(this, actionHandler.selectionScale);
         }
         if(immediate){
             this.node.position = offset;

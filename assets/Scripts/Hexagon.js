@@ -8,8 +8,7 @@
 //  - [Chinese] https://docs.cocos.com/creator/manual/zh/scripting/life-cycle-callbacks.html
 //  - [English] https://www.cocos2d-x.org/docs/creator/manual/en/scripting/life-cycle-callbacks.html
 
-import HexagonGroup from 'HexagonGroup.js';
-import {EDirection} from 'GamePlay.js';
+import HexagonGroup from './HexagonGroup.js';
 
 cc.Class({
     extends: cc.Component,
@@ -39,51 +38,6 @@ cc.Class({
         },
     },
     // LIFE-CYCLE CALLBACKS:
-
-    onLoad () {
-        this.node.on(cc.Node.EventType.TOUCH_END, event => {
-            if(this.group){
-                console.log("Touch at : " + this.row + "-" + this.column);
-
-                //@TODO: test function only
-                // let hexagon = window.gamePlay.getHexagonByDirection(EDirection.TOP, this.row, this.column, this.group);
-                // if(typeof hexagon !== "undefined" && hexagon){
-                //     cc.log(`top : ${hexagon.row} - ${hexagon.column}`);
-                //     hexagon.node.runAction(cc.repeatForever(cc.fadeIn(1), cc.fadeOut(1)));
-                // }
-                // hexagon = window.gamePlay.getHexagonByDirection(EDirection.TOP_LEFT, this.row, this.column, this.group);
-                // if(typeof hexagon !== "undefined" && hexagon){
-                //     cc.log(`topleft : ${hexagon.row} - ${hexagon.column}`);
-                //     hexagon.node.runAction(cc.repeatForever(cc.fadeIn(1), cc.fadeOut(1)));
-                // }
-                // hexagon = window.gamePlay.getHexagonByDirection(EDirection.TOP_RIGHT, this.row, this.column, this.group);
-                // if(typeof hexagon !== "undefined" && hexagon){
-                //     cc.log(`topright : ${hexagon.row} - ${hexagon.column}`);
-                //     hexagon.node.runAction(cc.repeatForever(cc.fadeIn(1), cc.fadeOut(1)));
-                // }
-                // hexagon = window.gamePlay.getHexagonByDirection(EDirection.BOT, this.row, this.column, this.group);
-                // if(typeof hexagon !== "undefined" && hexagon){
-                //     cc.log(`bot : ${hexagon.row} - ${hexagon.column}`);
-                //     hexagon.node.runAction(cc.repeatForever(cc.fadeIn(1), cc.fadeOut(1)));
-                // }
-                // hexagon = window.gamePlay.getHexagonByDirection(EDirection.BOT_LEFT, this.row, this.column, this.group);
-                // if(typeof hexagon !== "undefined" && hexagon){
-                //     cc.log(`botleft : ${hexagon.row} - ${hexagon.column}`);
-                //     hexagon.node.runAction(cc.repeatForever(cc.fadeIn(1), cc.fadeOut(1)));
-                // }
-                // hexagon = window.gamePlay.getHexagonByDirection(EDirection.BOT_RIGHT, this.row, this.column, this.group);
-                // if(typeof hexagon !== "undefined" && hexagon){
-                //     cc.log(`botright : ${hexagon.row} - ${hexagon.column}`);
-                //     hexagon.node.runAction(cc.repeatForever(cc.fadeIn(1), cc.fadeOut(1)));
-                // }
-                //end Test
-            }
-        }, this)
-    },
-
-    setGroup(hexagroup){
-        this.group = hexagroup;
-    },
     
     createShadowOn(prefab){
         this.shadow = cc.instantiate(prefab);

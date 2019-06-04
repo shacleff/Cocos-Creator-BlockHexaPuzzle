@@ -8,8 +8,6 @@
 //  - [Chinese] https://docs.cocos.com/creator/manual/zh/scripting/life-cycle-callbacks.html
 //  - [English] https://www.cocos2d-x.org/docs/creator/manual/en/scripting/life-cycle-callbacks.html
 
-var Hexagon = require('Hexagon.js') 
-
 cc.Class({
     extends: cc.Component,
 
@@ -78,7 +76,6 @@ cc.Class({
     push(hexagon){
         if(hexagon instanceof cc.Node){
             let hexagonCom = hexagon.getComponent('Hexagon');
-            hexagonCom.setGroup(this);
             this.hexagons.push(hexagonCom);
         }
         else 

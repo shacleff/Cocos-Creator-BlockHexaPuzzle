@@ -8,20 +8,27 @@
 //  - [Chinese] https://docs.cocos.com/creator/manual/zh/scripting/life-cycle-callbacks.html
 //  - [English] https://www.cocos2d-x.org/docs/creator/manual/en/scripting/life-cycle-callbacks.html
 
-import {EDirection} from 'GamePlay.js';
+var Range = require('./Range');
+
+function PieceRect(piece, rect, horizontal, vertical){
+    this.piece = piece;
+    this.rect = rect;
+    this.horizontal = new Range();
+    this.horizontal.set(horizontal);
+    this.vertical = new Range();
+    this.vertical.set(vertical);
+};
+
 cc.Class({
     extends: cc.Component,
 
     properties: {
-        grid:{
-            default : [],
-            visible : false,
-        },
-        pieces:{    
-            default : [],   //number : size each piece
+        pieceRects:{    
+            default : [],   //array PieceRect object
             visible : false,
         },
         margin : 10,
+        ratioMarginBox : cc.size(1,1),
 
         testPrefab: {
             default: null,
@@ -30,96 +37,102 @@ cc.Class({
     },
 
     onLoad () {
-        // this.generateGrid();
+        this.rangeHorizontal = this.node.width / 2 - this.margin;
+        this.rangeVertical = this.node.height / 2 - this.margin;
     },
 
     clear(){
-        this.pieces.length = 0;
-        this.gridUse.length = 0;
-        this.gridUse = Array.from(this.grid);
+        this.pieceRects.length = 0;
     },
 
     push(piece){
         if(piece.blocks.length > 0){
-            // let toLeft = 0, toRight = 0, toUp = 0, toDown = 0;
-            // let firstBlock = piece.blocks[0].position;
-            // for(let i = 1; i < piece.blocks.length; ++i){
-            //     let blockPos = piece.blocks[i].position;
-            //     let horizontal = blockPos.x - firstBlock.x;
-            //     let vertical = blockPos.y - firstBlock.y;
-            //     if(horizontal > 0 && horizontal > toRight)toRight = horizontal;
-            //     else if(horizontal < 0 && horizontal < toLeft)toLeft = horizontal;
-            //     if(vertical > 0 && vertical > toUp)toUp = vertical;
-            //     else if(vertical < 0 && vertical < toDown)toDown = vertical;
-            // }
-            // let position = cc.Vec2.ZERO;
-            // if(rangeX > 0)
-            //     position = cc.v2(this.rangeX - toRight, this.rangeY - toUp);
-            // this.rangeX = position.x + toLeft - this.sizeHexagon.width;
-            
-            // this.rangeY = position.y 
-            // console.log(`rangeX ${this.rangeX}`);
-            // console.log(`to left ${toLeft} - to right ${toRight}`);
-            // console.log(position);
-            let position = this.grid[~~(Math.random() * this.grid.length)];
+            let startPosition = piece.blocks[0].getPosition();
+            let sizeBlock = this.getTrueSize(piece.blocks[0].getContentSize());
+            let horizontal = new Range(), vertical = new Range();
+            for(let block of piece.blocks){
+                let subPosition = block.getPosition().sub(startPosition);
+                subPosition.divSelf(2);
+                if(subPosition.x != 0){
+                    if(subPosition.x < horizontal.min)horizontal.min = subPosition.x;
+                    else if(subPosition.x > horizontal.max)horizontal.max = subPosition.x;
+                }
+                if(subPosition.y != 0){
+                    if(subPosition.y < vertical.min)vertical.min = subPosition.y;
+                    else if(subPosition.y > vertical.max)vertical.max = subPosition.y;
+                }
+            }
 
-            position.addSelf(this.node.position);   //convert to canvas pos
+            let position = cc.v2(0, 0);
             piece.positionPiecesArea = position;
             piece.revertToPieces(0, true);
+
+            //for Rect
+            horizontal.min -= sizeBlock.width/2;
+            horizontal.max += sizeBlock.width/2;
+            vertical.min -= sizeBlock.height/2;
+            vertical.max += sizeBlock.height/2;
+            let posRect = cc.v2(position.x + horizontal.min, position.y + vertical.min);
+            let rect = cc.rect(posRect.x, posRect.y, horizontal.max - horizontal.min, vertical.max - vertical.min);
+            this.pieceRects.push(new PieceRect(piece, rect, horizontal, vertical));
+            
         }
     },
 
-    generateGrid(){
-        let originalSizeHexagon = window.gamePlay.sizeHexagonOnBoard;
-        this.sizeHexagon = cc.size(originalSizeHexagon.width / 2, originalSizeHexagon.height / 2);
-        this.grid.length = 0;
-        let center = cc.v2(0, 0);
-        let distanceX = this.sizeHexagon.width * 0.75;
-        let distanceY = this.sizeHexagon.height * 0.5;
-        let distance2Row = this.sizeHexagon.height;
-        this.rangeX = this.node.width / 2 - this.margin - this.sizeHexagon.width / 2;
-        this.rangeY = this.node.height / 2 - this.margin - this.sizeHexagon.height / 2;
-
-        let createColumnAt = startPoint =>{
-            this.grid.push(startPoint.clone());
-            let countHeight = 1;
-            while(true){
-                let up = cc.v2(startPoint.x, startPoint.y + distance2Row * countHeight);
-                if(up.y < this.rangeY)this.grid.push(up);
-                else break;
-
-                let down = cc.v2(startPoint.x, startPoint.y - distance2Row * countHeight);
-                if(down.y > -this.rangeY)this.grid.push(down);
-                else break;
-                countHeight++;
-            }
+    resize(){
+        //shuffle random array
+        for (let i = this.pieceRects.length - 1; i > 0; i--) {
+            const j = ~~(Math.random() * (i + 1));
+            [this.pieceRects[i], this.pieceRects[j]] = [this.pieceRects[j], this.pieceRects[i]];    //swap
         }
+        
+        let row = 1;
+        let posStart = cc.v2(-this.rangeHorizontal, this.rangeVertical);
+        posStart = this.convertFromBarToCanvasPos(posStart);
+        let posTemp = posStart.clone();
+        for(let pieceRect of this.pieceRects){
+            if(pieceRect.piece.blocks.length > 0){
+                let rect = pieceRect.rect;
+                if(posTemp.x + rect.width > this.rangeHorizontal){
+                    posTemp.x = posStart.x;
+                    posTemp.y = -this.rangeVertical;
+                    posTemp = this.convertFromBarToCanvasPos(posTemp);
+                    row = 2;
+                }
+                if(row == 1){
+                    posTemp.y = this.node.position.y + this.rangeVertical - rect.height;
+                }
 
-        let countColumn = 0;
-        while(true){
-            if(countColumn != 0){
-                let changeY = countColumn % 2 == 1 ? distanceY : 0;
-                let left = center.x - distanceX * countColumn;
-                if(left > -this.rangeX)createColumnAt(cc.v2(left, center.y - changeY));
-                else break;
-                let right = center.x + distanceX * countColumn;
-                if(right < this.rangeX)createColumnAt(cc.v2(right, center.y - changeY));
-                else break;
-            }else{
-                createColumnAt(center);
+                let position = cc.v2(posTemp.x - pieceRect.horizontal.min, posTemp.y - pieceRect.vertical.min);
+                pieceRect.piece.positionPiecesArea = position;
+                pieceRect.piece.revertToPieces(0, true);
+
+                rect.x = posTemp.x;
+                rect.y = posTemp.y;
+                //for next
+                let sizeBlock = this.getTrueSize(pieceRect.piece.blocks[0].getContentSize());
+                posTemp.x += rect.width + this.ratioMarginBox.width * sizeBlock.width;
             }
-            countColumn++;
+        }    
+
+
+        //ONLY test Rect
+        let test = window.gamePlay.node.getComponent(cc.Graphics);
+        test.clear();
+        for(let pieceRect of this.pieceRects){
+            let rect = pieceRect.rect;
+            test.lineTo(0,0);
+            test.rect(rect.x, rect.y, rect.width, rect.height);
+            test.stroke();    
         }
+    },
 
-        this.maxColumn = countColumn * 2 + 1;
-        this.maxRow = ~~(this.grid.length / this.maxColumn);
+    convertFromBarToCanvasPos(position){
+        return position.add(this.node.position);
+    },
 
-        // For TEst
-        // for(let pos of this.grid){
-        //     let node =cc.instantiate(this.testPrefab);
-        //     node.position = pos;
-        //     node.setContentSize(this.sizeHexagon);
-        //     this.node.addChild(node);
-        // }
+    getTrueSize(size){
+        let actionHandler =  window.gamePlay.actionHandler;
+        return cc.size(size.width * actionHandler.selectionScale, size.height * actionHandler.selectionScale);
     }
 });

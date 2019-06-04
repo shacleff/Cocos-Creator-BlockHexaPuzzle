@@ -7,7 +7,7 @@
 // Learn life-cycle callbacks:
 //  - [Chinese] https://docs.cocos.com/creator/manual/zh/scripting/life-cycle-callbacks.html
 //  - [English] https://www.cocos2d-x.org/docs/creator/manual/en/scripting/life-cycle-callbacks.html
-import {Range} from 'GamePlay.js';
+var Range = require('./Range');
 let Difficult = cc.Class({
     name: 'Difficult',
     properties:{
@@ -23,6 +23,11 @@ let Difficult = cc.Class({
             type: Range,
             default: null
         },
+        numberHoles:{
+            type: Range,
+            default: null
+        },
+        rateHole: 0
     }
 });
 
@@ -49,7 +54,6 @@ cc.Class({
     },
     onLoad(){
         this.countTime = 0;
-        let isIncreDifficult
     },
 
     nextLevel(){

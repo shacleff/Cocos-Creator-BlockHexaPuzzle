@@ -1,16 +1,16 @@
 {
   "ver": "2.3.0",
-  "uuid": "e9768d92-3b79-4de7-b8a6-7cb037d52205",
+  "uuid": "a852bc8f-0b80-4097-a219-9bc2e1c8e39c",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
   "premultiplyAlpha": false,
   "platformSettings": {},
   "subMetas": {
-    "HEX_Block_Blue": {
+    "HEX_Block_b copy": {
       "ver": "1.0.4",
-      "uuid": "78727abf-b43b-497a-ac32-4e36c8506b3d",
-      "rawTextureUuid": "e9768d92-3b79-4de7-b8a6-7cb037d52205",
+      "uuid": "4ce6730c-6508-4865-b7f9-33cd34153fc2",
+      "rawTextureUuid": "a852bc8f-0b80-4097-a219-9bc2e1c8e39c",
       "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,

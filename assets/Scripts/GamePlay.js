@@ -7,10 +7,6 @@
 // Learn life-cycle callbacks:
 //  - [Chinese] https://docs.cocos.com/creator/manual/zh/scripting/life-cycle-callbacks.html
 //  - [English] https://www.cocos2d-x.org/docs/creator/manual/en/scripting/life-cycle-callbacks.html
-
-import Hexagon from 'Hexagon.js';
-import {ActionHandler} from 'ActionHandler.js';
-
 export const EDirection = cc.Enum({
     TOP: 0,
     BOT: 1,
@@ -21,17 +17,7 @@ export const EDirection = cc.Enum({
     COUNT: 6     
 });
 
-export let Range = cc.Class({
-    name: "Range",
-    properties:{
-        min: 0,
-        max: 0
-    },
-    set(range){
-        this.min = range.min;
-        this.max = range.max;
-    }
-});
+var Range = require('./Range');
 
 cc.Class({
     extends: cc.Component,
@@ -53,7 +39,8 @@ cc.Class({
         numberHexagonsGroup: 1,
         totalNumberHexagons:{
             type: Range,
-            default: null
+            default: null,
+            visible: false
         },
         marginBetweenHexa: 5,
         maxDifferenceWidthHeight: 4,
@@ -70,19 +57,31 @@ cc.Class({
             default: [],
             type: cc.SpriteFrame
         },
+        hole:{
+            default: null,
+            type: cc.SpriteFrame
+        },
+        numberHoles:{
+            type: Range,
+            default: null,
+            visible: false
+        },
         numberPieces : {
             type: Range,
-            default: null
+            default: null,
+            visible: false
         },
         numberBlockEachPieces : {
             type: Range,
-            default: null
+            default: null,
+            visible: false
         },
-        maxBetweenPieces : 5,
-        
     },
 
     // LIFE-CYCLE CALLBACKS:
+    onLoad(){
+        this.actionHandler = this.node.getChildByName('ActionHandler').getComponent('ActionHandler');
+    },
 
     start () {
         this.isGenerating = true;
@@ -97,7 +96,7 @@ cc.Class({
         this.generateGridPosition();
         this.nextLevel();
         this.createGame();
-        this.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(()=>{this.isGenerating = false;}, this)));
+        this.node.runAction(cc.sequence(cc.delayTime(0.5), cc.callFunc(()=>{this.isGenerating = false;}, this)));
     },
 
     createGame(){
@@ -114,8 +113,7 @@ cc.Class({
         this.numberHexagons = this.getRandom(this.totalNumberHexagons.min, this.totalNumberHexagons.max);
         this.rangeGenerateHexa = this.calculateRangeGenHexa();
         console.log("Number hexagon : " + this.numberHexagons);
-        this.generateHexagons(this.numberHexagons, this.numberHexagonsGroup);
-        this.generatePieceOnHexagons();
+        this.generatePiece();
         this.putPiecesToSelectionBar();
     },
 
@@ -126,6 +124,9 @@ cc.Class({
             this.totalNumberHexagons.set(level.difficult.totalBlocks);
             this.numberPieces.set(level.difficult.pieces);
             this.numberBlockEachPieces.set(level.difficult.piecesBlocks);
+            this.numberHoles = new Range();
+            this.numberHoles.set(level.difficult.numberHoles);
+            this.rateHole = level.difficult.rateHole;
         }
     },
 
@@ -133,6 +134,7 @@ cc.Class({
         if(!this.isGenerating){
             this.isGenerating = true;
             this.node.getChildByName('FunctionHandler').getComponent('FunctionHandler').history.length = 0;
+            this.node.getChildByName('SelectionBar').getComponent('SelectionBar').clear();
             this.createGame();
             this.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(()=>{this.isGenerating = false;}, this)));
         }else{
@@ -161,255 +163,213 @@ cc.Class({
     },
 
     putPiecesToSelectionBar(){
-        let selectionBar = this.node.getChildByName('Hex_Selection_bar');
+        let selectionBar = this.node.getChildByName('SelectionBar');
         if(selectionBar){
             let barCom = selectionBar.getComponent('SelectionBar');
             if(barCom){
-                barCom.generateGrid();
-                this.listHexagonsGroup.forEach(group=>{
+                for(let group of this.listHexagonsGroup){
                     for(let piece of group.pieces){
                         piece.positionInGameBoard = cc.v2(9999,9999);
+                        this.actionHandler.scalePiece(piece, this.actionHandler.selectionScale);
                         barCom.push(piece.getComponent('Piece'));
-                        ActionHandler.instance.scalePiece(piece, ActionHandler.instance.selectionScale);
                     }
                     for(let hexa of group.hexagons){
                         hexa.block = null;
                     }
-                });
+                }
+                barCom.resize();
             }
         }
     },
 
-    generatePieceOnHexagons(){
-        //Color
-        // let listTypes = this.suffleArray(Array.from(this.blockTypes));
-        let listTypes = Array.from(this.blockTypes);
+    generatePiece(){
+        function pieceCreation(){
+            this.numberBlocks = 0;
+            this.type = 0;
+            this.piecePositions = [];
+        };
+        let arrayPieceCreations = [];
+        //get number pieces
         let numberPieces = this.getRandom(this.numberPieces.min, this.numberPieces.max);
-        while(numberPieces * this.numberBlockEachPieces.min >= this.numberHexagons){
-            numberPieces = this.getRandom(this.numberPieces.min, this.numberPieces.max);
+        for(let i = 0; i < numberPieces; ++i){
+            arrayPieceCreations.push(new pieceCreation());
+            arrayPieceCreations[arrayPieceCreations.length - 1].type = this.blockTypes[i];
         }
-        console.log("Number Pieces : " + numberPieces);
-        //for number block each piece
-        let totalBlocks = this.numberHexagons;
-        let numberBlocksEachPieces = [];
-        for(let i = 0; i < numberPieces - 1; ++i){
-            let number = totalBlocks;
-            let compare = ~~(totalBlocks / (numberPieces - i));
-            while(number > compare){
-                if(compare >= this.numberBlockEachPieces.min) number = this.getRandom(this.numberBlockEachPieces.min, this.numberBlockEachPieces.max);
-                else number = this.numberBlockEachPieces.min;
+        cc.log("Number Piece : " + numberPieces);
+        //get number blocks each piece : get value to arrayPieceCreations
+        {
+            let numberHexagonsTemp = this.numberHexagons;
+            let maxBlocks = this.numberBlockEachPieces.max;
+            let minBlocks = this.numberBlockEachPieces.min;
+            for(let i = 0; i < numberPieces - 1; i++){
+                let numberBlocks = minBlocks;
+                if(numberHexagonsTemp > maxBlocks){
+                    let blocksForOthers = (numberPieces - i - 1) * minBlocks;
+                    let subAvailable = numberHexagonsTemp - maxBlocks - blocksForOthers;
+                    if(subAvailable < 0){
+                        numberBlocks = this.getRandom(minBlocks, maxBlocks + subAvailable);
+                    }else{
+                        numberBlocks = this.getRandom(minBlocks, maxBlocks);
+                    }
+                }else{
+                    numberBlocks = this.getRandom(minBlocks, numberHexagonsTemp);
+                }
+                arrayPieceCreations[i].numberBlocks = numberBlocks;
+                numberHexagonsTemp -= numberBlocks;
             }
-            numberBlocksEachPieces.push(number);
-            totalBlocks -= number;
+            arrayPieceCreations[numberPieces - 1].numberBlocks = numberHexagonsTemp;
         }
-        numberBlocksEachPieces.push(totalBlocks);   //final
-        console.log("Number blocks each piece : " + numberBlocksEachPieces);
+        for(let piece of arrayPieceCreations)cc.log("Block each Piece : " + piece.numberBlocks);
+        //get grid available to put block : out put to gridAvaiable
+        let gridAvaiable = [];
+        {
+            let rangerVertical = new Range(), rangerHorizontal = new Range();
+            rangerVertical.min = this.positionStartGenHexa.row - this.rangeGenerateHexa.height / 2;
+            rangerVertical.max = this.positionStartGenHexa.row + this.rangeGenerateHexa.height / 2;
+            rangerHorizontal.min = this.positionStartGenHexa.column - this.rangeGenerateHexa.width / 2;
+            rangerHorizontal.max = this.positionStartGenHexa.column + this.rangeGenerateHexa.width / 2;
 
-        for(let group of this.listHexagonsGroup){   //current is 1 group
-            for(let i = 0; i < numberPieces; ++i){
-                let piece = cc.instantiate(this.piecePrefab);
-                this.node.addChild(piece);
-                group.pieces.push(piece.getComponent('Piece'));
-            }
+            for(let row = 0; row < this.realSizePlay.height; row++)
+                if(row >= ~~rangerVertical.min && row <= rangerVertical.max)
+                    for(let column = 0; column < this.realSizePlay.width; column++)
+                        if(column >= ~~rangerHorizontal.min && column <= rangerHorizontal.max)
+                            gridAvaiable.push({row, column});
         }
-         //generate
-        let posAvaiable = [];
-        let isPosAvaible = pos =>{
-            let find = posAvaiable.findIndex(element =>{return element.row == pos.row && element.column == pos.column;});
-            if(find != -1)return true;
-            return false;
-        }
-        let removeFromArray = (pos, array) =>{
-            let find = array.findIndex(element =>{return element.row == pos.row && element.column == pos.column;});
-            if(find != -1)array.splice(find, 1);
-        }
-        let getAroundAvaiable = startPos => {
+
+        let positionAvailable = (row, column) =>{
+            return gridAvaiable.findIndex(element =>{
+                return element.row == row && element.column == column;
+            });
+        };
+        let getRandomInArray = array =>{
+            return array[~~(Math.random() * array.length)];
+        };
+        let getPositionAround = (row, column) =>{
             let result = [];
-            for(let d = 0; d < EDirection.COUNT; d++){
-                let pos = this.getHexagonPosAtDirection(d, startPos.row, startPos.column);
-                if(isPosAvaible(pos))result.push(pos);
+            for(let i = 0; i < EDirection.COUNT; i++){
+                let position = this.getHexagonPosAtDirection(i, row, column);
+                let index = positionAvailable(position.row, position.column);
+                if(index != - 1)result.push(index);
             }
             return result;
-        }
-        let arrayCreates = [];
-        function create(piece, hexagon, frame){
-            this.piece = piece;
-            this.hexagon = hexagon;
-            this.frame = frame;
-        }
-        let getCreateAtHexaInCreates = pos =>{
-            for(let create of arrayCreates){
-                if(create.hexagon && create.hexagon.row == pos.row && create.hexagon.column == pos.column)return create;
+        };
+        //generate blocks
+        //start of each piece
+        for(let i = 0; i < numberPieces; i++){
+            if(i == 0){
+                let center = positionAvailable(~~this.positionStartGenHexa.row, ~~this.positionStartGenHexa.column);
+                arrayPieceCreations[i].piecePositions.push(gridAvaiable[center]);
+                arrayPieceCreations[i].numberBlocks--;
+                gridAvaiable.splice(center, 1);
+            }else{
+                let randomPiece = arrayPieceCreations[~~(Math.random() * i)];
+                let firstBlockPos = randomPiece.piecePositions[0];
+                let around = getPositionAround(firstBlockPos.row, firstBlockPos.column);
+                if(around.length > 0){
+                    let randomIndex = getRandomInArray(around);
+                    arrayPieceCreations[i].piecePositions.push(gridAvaiable[randomIndex]);
+                    arrayPieceCreations[i].numberBlocks--;
+                    gridAvaiable.splice(randomIndex, 1);
+                }
             }
-            return null;
+        }
+        //full of each piece
+        while(true){
+            let isFinished = true;
+            for(let creation of arrayPieceCreations){
+                if(creation.numberBlocks > 0 && creation.piecePositions.length > 0){
+                    let randomStart = getRandomInArray(creation.piecePositions);
+                    let around = getPositionAround(randomStart.row, randomStart.column);
+                    if(around.length > 0){
+                        let randomIndex = getRandomInArray(around);
+                        creation.piecePositions.push(gridAvaiable[randomIndex]);
+                        creation.numberBlocks--;
+                        gridAvaiable.splice(randomIndex, 1);
+                        isFinished = false;
+                    }
+                }
+            }
+            if(isFinished)break;
         }
 
-        while(true)
-        {     
-            console.log("start gen"); 
-            posAvaiable = this.suffleArray(Array.from(this.listPositionAvaiable));
-            arrayCreates.length = 0;
-            for(let group of this.listHexagonsGroup){
-                for(let i = 0; i < group.pieces.length; ++i){
-                    if(posAvaiable.length > 0){
-                        let positionUsed = [];
-                        let piece = group.pieces[i];
-                        let type = listTypes[i >=  listTypes.length ? i - listTypes.length : i];
-                        let createAt = posAvaiable[posAvaiable.length - 1];
-                        positionUsed.push(createAt);
-                        arrayCreates.push(new create(piece, group.getHexagonAt(createAt.row, createAt.column), type));
-                        removeFromArray(createAt, posAvaiable);
-                        for(let count = 1; count < numberBlocksEachPieces[i]; ++count){
-                            let startPos = positionUsed[~~(Math.random() * positionUsed.length)];
-                            let createdPositions = getAroundAvaiable(startPos);
-                            if(createdPositions.length > 0){
-                                createAt = createdPositions[~~(Math.random() * createdPositions.length)];
-                                positionUsed.push(createAt);
-                                arrayCreates.push(new create(piece, group.getHexagonAt(createAt.row, createAt.column), type));
-                                removeFromArray(createAt, posAvaiable);
+        //for hole..
+        {
+            let numberHoles = this.getRandom(this.numberHoles.min, this.numberHoles.max);
+            if(numberHoles > 0 && this.rateHole > 0){
+                if(~~(Math.random() * 100) <= this.rateHole){
+                    let posForHole = [];
+                    let getSameTypesArond = (row, column, arraySameType) =>{
+                        let around = getPositionAround(row, column);
+                        let count = 0;
+                        if(around >= EDirection.COUNT){
+                            for(let pos of around){
+                                let find = arraySameType.findIndex(ele =>{return ele.row == pos.row && ele.column == pos.column;});
+                                if(find != -1)count++;
                             }
                         }
-                        positionUsed.length = 0;
-                    }
-                }
-                //fill empty hexagons
-                // cc.debug();
-                while(posAvaiable.length > 0){
-                    for(let i = 0; i < posAvaiable.length;){
-                        let checkPos = posAvaiable[i];
-                        let aroundTypes = [];
-                        let pieces = [];
-                        for(let d = 0; d < EDirection.COUNT; d++){
-                            let pos = this.getHexagonPosAtDirection(d, checkPos.row, checkPos.column);
-                            let c = getCreateAtHexaInCreates(pos);
-                            if(c){
-                                aroundTypes.push(c.frame);
-                                pieces.push(c.piece);
+                        return count;
+                    };
+                    let createHoleRandArray = () =>{
+                        let randomIndex = ~~(Math.random() * posForHole.length);
+                        let position = posForHole[randomIndex];
+                        createBlockAtPos(position.row, position.column, this.hole);
+                        posForHole.splice(randomIndex, 1);
+                    };
+                    for(let creation of arrayPieceCreations){
+                        if(creation.piecePositions.length > this.numberBlockEachPieces.min){
+                            creation.piecePositions = this.suffleArray(creation.piecePositions);
+                            for(let i = 0; i < creation.piecePositions.length; i++){
+                                let start = creation.piecePositions[i];
+                                if(getSameTypesArond(start.row, start.column, creation.piecePositions) >= 3){
+                                    posForHole.push(start);
+                                    break;
+                                }
                             }
                         }
-                        if(aroundTypes.length > 0){
-                            let randIndex = ~~(Math.random() * aroundTypes.length);
-                            let type = aroundTypes[randIndex];
-                            let piece = pieces[randIndex];
-                            if(type){
-                                if(piece)arrayCreates.push(new create(piece, group.getHexagonAt(checkPos.row, checkPos.column), type));
-                                removeFromArray(checkPos, posAvaiable);
-                            }else ++i;
-                        }else ++i;
+                    }
+                    if(posForHole.length > 0){
+                        createHoleRandArray();
+                        for(let i = 1; i < numberHoles; i++)
+                            if(~~(Math.random() * 100) <= this.rateHole) createHoleRandArray();
                     }
                 }
-            }
-            let arrayTemp = Array.from(arrayCreates);
-            let isOK = true;
-            for(let create of arrayTemp){
-                let count = 0;
-                for(let createCheck of arrayCreates){
-                    if(create.frame.name == createCheck.frame.name)count++;
-                }
-                if(count < this.numberBlockEachPieces.min || count > this.numberBlockEachPieces.max){
-                    isOK = false;
-                    break;
-                }
-            }
-            if(isOK){
-                for(let create of arrayCreates){
-                    let newBlock = this.createBlockAtHexagonNode(create.hexagon, create.frame); 
-                    create.piece.pushBlock(newBlock);
-                }
-                break;
             }
         }
+        
+        //create blocks
+        this.listHexagonsGroup.length = 0;
+        for(let groupI = 0; groupI < this.numberHexagonsGroup; groupI++){
+            let group = cc.instantiate(this.hexagonGroupPrefab);
+            let groupCom = group.getComponent('HexagonGroup');
+            this.listHexagonsGroup.push(groupCom);
+            for(let createI = 0; createI < arrayPieceCreations.length; createI++){
+                let piece = cc.instantiate(this.piecePrefab);
+                let pieceCom = piece.getComponent('Piece');
+                this.node.addChild(piece, 1);
+                groupCom.pieces.push(pieceCom);
+                for(let pos of arrayPieceCreations[createI].piecePositions){
+                    //hexagon
+                    let hexagon = this.createHexagonsAt(pos.row, pos.column);
+                    groupCom.push(hexagon);
+                    let block = this.createBlockAtPos(pos.row, pos.column, this.blockTypes[createI % this.blockTypes.length]);
+                    pieceCom.pushBlock(block);
+                    let hexagonCom = hexagon.getComponent('Hexagon');
+                    hexagonCom.block = block;
+                }
+            }
+        }
+
+        
     },
 
-    //@param : hexagon : is a Hexagon object 
     //@Return : a node object which contains Block component
-    createBlockAtHexagonNode(hexagon, spriteFrame){
+    createBlockAtPos(row, column, spriteFrame){
         let block = cc.instantiate(this.blockPrefab);
         block.getComponent(cc.Sprite).spriteFrame = spriteFrame;
-        block.setPosition(hexagon.node.position);
-        block.zIndex = 1;
+        block.setPosition(this.grid[row][column]);
         block.setContentSize(this.sizeHexagonOnBoard.width, this.sizeHexagonOnBoard.height);
-        this.node.addChild(block);
-        hexagon.block = block;
+        this.node.addChild(block, 1);
         return block;
-    },
-
-    getNumberDirectionAvaiableForBlock(row, column){
-        let result = [];  
-        let temp = [];
-        for(let i = 0; i < EDirection.COUNT; ++i){
-            temp.push(this.getHexagonPosAtDirection(i, row, column));
-        }
-        for(let pos of temp){
-            if(this.isHexagonCreatedAt(pos.row, pos.column)){
-                result.push(pos);
-            }
-        }
-        return result;
-    },
-
-    generateHexagons(numberObject, numberGroup){
-        this.listHexagonsGroup.length = 0;
-        if(this.hexagonPrefab && this.hexagonGroupPrefab && numberObject > 0 && numberGroup > 0 && numberGroup < numberObject){
-            if(numberObject > this.maxHexagon)numberObject = this.maxHexagon;
-            if(numberObject > this.rangeGenerateHexa.width * this.rangeGenerateHexa.height)
-                numberObject = this.rangeGenerateHexa.width * this.rangeGenerateHexa.height;
-            let numberObjectTemp = numberObject;
-            let maxSizeToGen = {row: this.positionStartGenHexa.row + this.rangeGenerateHexa.height / 2,
-                                column: this.positionStartGenHexa.column + this.rangeGenerateHexa.width / 2};
-            let minSizeToGen = {row: maxSizeToGen.row - this.rangeGenerateHexa.height,
-                                column: maxSizeToGen.column - this.rangeGenerateHexa.width};
-
-            for(let i = 0; i < numberGroup; ++i){
-                let hexagonsGroup = cc.instantiate(this.hexagonGroupPrefab);
-                let hexagonsGroupCom = hexagonsGroup.getComponent('HexagonGroup');
-                if(hexagonsGroupCom){
-                    this.listHexagonsGroup.push(hexagonsGroupCom);
-                    while(numberObjectTemp > 0){
-                        let generate = (hexagonStart, number) =>{
-                            if(hexagonStart){
-                                let listGenerated = this.generateRandomAroundAHexagon(hexagonStart, number, minSizeToGen, maxSizeToGen);
-                                listGenerated.forEach(hexagon =>{
-                                    hexagonsGroupCom.push(hexagon);
-                                }, this);
-                                numberObjectTemp-= listGenerated.length;
-                            }
-                        };
-
-                        if(hexagonsGroupCom.getNumberHexagons() == 0){
-                            let hexagon = this.createHexagonsAt(this.positionStartGenHexa.row, this.positionStartGenHexa.column);
-                            if(hexagon){
-                                hexagonsGroupCom.push(hexagon);
-                                --numberObjectTemp;
-                            }
-                        }else {
-                            let randomStart = hexagonsGroupCom.hexagons[~~(Math.random() * hexagonsGroupCom.hexagons.length - 1) + 1];
-                            if(randomStart)generate(randomStart, 1);
-                            else if(numberObjectTemp > 6)generate(hexagonsGroupCom.hexagons[0], 6);
-                            else generate(hexagonsGroupCom.hexagons[0], numberObjectTemp);
-                        }//else{
-                            // console.log("con lai : " + numberObjectTemp);
-                        //     let randomStart = hexagonsGroupCom.hexagons[~~(Math.random() * hexagonsGroupCom.hexagons.length - 1) + 1]
-                        //     if(randomStart){
-                        //         generate(randomStart, 1);
-                        //     }
-                        // }
-                    }
-                }
-            }
-        }
-
-        //@TODO: only test Grid
-        // let hexagonsGroup = cc.instantiate(this.hexagonGroupPrefab);
-        // let hexagonsGroupCom = hexagonsGroup.getComponent('HexagonGroup');
-        // if(hexagonsGroupCom){
-        //     for(let row = 0; row < this.grid.length; ++row)
-        //         for(let column = 0; column < this.grid[row].length; ++column){
-        //             hexagonsGroupCom.push(this.createHexagonsAt(row, column));
-        //         }
-        //     this.listHexagonsGroup.push(hexagonsGroupCom);
-        // }
-        //end test
     },
 
     //@Return : a cc.Node included a Hexagon object
@@ -429,8 +389,7 @@ cc.Class({
                     hexagon.setPosition(position);
                     this.listPositionAvaiable.push({row, column});
                     hexagon.setContentSize(this.sizeHexagonOnBoard);
-                    this.node.addChild(hexagon);
-                    cc.log(`Created a hexagon at ${row} - ${column}`);
+                    this.node.addChild(hexagon, 0);
                     //create shadow
                     if(this.blockPrefab){
                         hexagonCom.createShadowOn(this.blockPrefab);
@@ -480,7 +439,7 @@ cc.Class({
         return group.getHexagonAt(position.row, position.column);
     },
 
-    //@return : a vec2 with x -> row and y -> column
+    //@return : a object with row and column
     getHexagonPosAtDirection(direction, row, column){
         let findRow = row;
         let findCol = column;
@@ -520,12 +479,12 @@ cc.Class({
         while(side*side < this.numberHexagons * 1.5 && side < this.realSizePlay.width && side < this.realSizePlay.height){
             ++side;
         }
-        console.log("Range side : " + side);
         return cc.size(side,side);
     },
 
     generateGridPosition(){
         //calculate size hexagon
+        console.log(`Screen : ${this.node.width} - ${this.node.height}`);
         let measureScreenSide = this.node.width < this.node.height ? this.node.width : this.node.height;
         let measurePlaySide = (this.realSizePlay.width > this.realSizePlay.height ? this.realSizePlay.width : this.realSizePlay.height) + 1;
         this.sizeHexagonOnBoard = cc.size(measureScreenSide / measurePlaySide, measureScreenSide / measurePlaySide);
