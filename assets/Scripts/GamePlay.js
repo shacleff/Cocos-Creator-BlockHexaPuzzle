@@ -235,6 +235,7 @@ cc.Class({
                         if(column >= ~~rangerHorizontal.min && column <= rangerHorizontal.max)
                             gridAvaiable.push({row, column});
         }
+        let usedPosition = [];
 
         let positionAvailable = (row, column) =>{
             return gridAvaiable.findIndex(element =>{
@@ -258,7 +259,9 @@ cc.Class({
         for(let i = 0; i < numberPieces; i++){
             if(i == 0){
                 let center = positionAvailable(~~this.positionStartGenHexa.row, ~~this.positionStartGenHexa.column);
-                arrayPieceCreations[i].piecePositions.push(gridAvaiable[center]);
+                let position = gridAvaiable[center];
+                arrayPieceCreations[i].piecePositions.push(position);
+                usedPosition.push({row: position.row, column: position.column});
                 arrayPieceCreations[i].numberBlocks--;
                 gridAvaiable.splice(center, 1);
             }else{
@@ -267,7 +270,9 @@ cc.Class({
                 let around = getPositionAround(firstBlockPos.row, firstBlockPos.column);
                 if(around.length > 0){
                     let randomIndex = getRandomInArray(around);
-                    arrayPieceCreations[i].piecePositions.push(gridAvaiable[randomIndex]);
+                    let position = gridAvaiable[randomIndex];
+                    arrayPieceCreations[i].piecePositions.push(position);
+                    usedPosition.push({row: position.row, column: position.column});
                     arrayPieceCreations[i].numberBlocks--;
                     gridAvaiable.splice(randomIndex, 1);
                 }
@@ -282,7 +287,9 @@ cc.Class({
                     let around = getPositionAround(randomStart.row, randomStart.column);
                     if(around.length > 0){
                         let randomIndex = getRandomInArray(around);
-                        creation.piecePositions.push(gridAvaiable[randomIndex]);
+                        let position = gridAvaiable[randomIndex];
+                        creation.piecePositions.push(position);
+                        usedPosition.push({row: position.row, column: position.column});
                         creation.numberBlocks--;
                         gridAvaiable.splice(randomIndex, 1);
                         isFinished = false;
@@ -299,20 +306,28 @@ cc.Class({
                 if(~~(Math.random() * 100) <= this.rateHole){
                     let posForHole = [];
                     let getSameTypesArond = (row, column, arraySameType) =>{
-                        let around = getPositionAround(row, column);
+                        let around = [];
+                        for(let i = 0; i < EDirection.COUNT; i++){
+                            let position = this.getHexagonPosAtDirection(i, row, column);
+                            let index = usedPosition.findIndex(element =>{
+                                return element.row == position.row && element.column == position.column;
+                            }, this);
+                            if(index != - 1)around.push(index);
+                        }
                         let count = 0;
-                        if(around >= EDirection.COUNT){
+                        if(around.length >= EDirection.COUNT){
                             for(let pos of around){
                                 let find = arraySameType.findIndex(ele =>{return ele.row == pos.row && ele.column == pos.column;});
                                 if(find != -1)count++;
                             }
                         }
+                        console.log("Count : " + count);
                         return count;
                     };
                     let createHoleRandArray = () =>{
                         let randomIndex = ~~(Math.random() * posForHole.length);
                         let position = posForHole[randomIndex];
-                        createBlockAtPos(position.row, position.column, this.hole);
+                        this.createBlockAtPos(position.row, position.column, this.hole);
                         posForHole.splice(randomIndex, 1);
                     };
                     for(let creation of arrayPieceCreations){
@@ -320,7 +335,8 @@ cc.Class({
                             creation.piecePositions = this.suffleArray(creation.piecePositions);
                             for(let i = 0; i < creation.piecePositions.length; i++){
                                 let start = creation.piecePositions[i];
-                                if(getSameTypesArond(start.row, start.column, creation.piecePositions) >= 3){
+                                let sameAround = getSameTypesArond(start.row, start.column, creation.piecePositions);
+                                if(sameAround > 2 || sameAround == 0 || sameAround == 1){
                                     posForHole.push(start);
                                     break;
                                 }
