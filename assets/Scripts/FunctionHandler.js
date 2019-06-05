@@ -29,6 +29,7 @@ cc.Class({
     properties: {
         history: [],    //History array
         hints: [],
+        hintRate : 30,
         autoes: [],
         isAutoPlay: false,
     },
@@ -71,9 +72,25 @@ cc.Class({
     },
 
     hint(){
-        for(let hint of this.hints){
-            if(hint.hexagon && hint.frame)
-                hint.hexagon.setShadow(hint.frame);
+        window.gamePlay.hideAllShadow();
+        let numberPieces = 0;
+        for(let group of window.gamePlay.listHexagonsGroup) numberPieces += group.pieces.length;
+        let rate = Math.round(numberPieces / 100 * this.hintRate);
+        let tempHint = Array.from(this.hints);
+        for(let i = tempHint.length - 1; i > 0; i--){
+            let j = ~~(Math.random() * (i + 1));
+            [tempHint[i], tempHint[j]] = [tempHint[j], tempHint[i]];
+        }
+        while(rate > 0){
+            let frame = tempHint[0].frame;
+            for(let i = 0; i < tempHint.length;){
+                let hint = tempHint[i];
+                if(hint.frame.name == frame.name){
+                    hint.hexagon.setShadow(hint.frame);
+                    tempHint.splice(i, 1);
+                }else i++;
+            }
+            --rate;
         }
     },
 
