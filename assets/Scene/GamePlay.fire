@@ -1485,6 +1485,7 @@
     "_enabled": true,
     "history": [],
     "hints": [],
+    "hintRate": 30,
     "autoes": [],
     "isAutoPlay": false,
     "_id": "92cLw7YEpMpIb2tbpzqbtz"
