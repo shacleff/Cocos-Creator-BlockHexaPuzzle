@@ -36,7 +36,8 @@ export var ActionHandler = cc.Class({
         piece.blocks.forEach(block=>{
             block.angle = -angle;
         });
-    }
+    },
+
 });
 
 

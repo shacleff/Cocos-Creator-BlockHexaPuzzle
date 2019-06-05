@@ -82,6 +82,7 @@ cc.Class({
     onLoad(){
         window.gamePlay = this;
         this.actionHandler = this.node.getChildByName('ActionHandler').getComponent('ActionHandler');
+        this.functionHandler = this.node.getChildByName('FunctionHandler').getComponent('FunctionHandler');
         this.grid = [];
         this.listPositionAvaiable = [];
         this.listHexagonsGroup = [];    //HexagonsGroup array
@@ -116,9 +117,19 @@ cc.Class({
             this.listHexagonsGroup.length = 0;
         }
         this.numberHexagons = this.getRandom(this.totalNumberHexagons.min, this.totalNumberHexagons.max);
-        this.rangeGenerateHexa = this.calculateRangeGenHexa();
         console.log("Number hexagon : " + this.numberHexagons);
+        this.rangeGenerateHexa = this.calculateRangeGenHexa();
+        console.log("rangeGenerateHexa : " + this.rangeGenerateHexa);
         this.generatePiece();
+        //save hint
+        for(let group of this.listHexagonsGroup){
+            for(let hexagon of group.hexagons)
+                if(hexagon && hexagon.block)
+                    this.functionHandler.saveHint(hexagon, hexagon.block.getComponent(cc.Sprite).spriteFrame);
+            for(let piece of group.pieces)
+                this.functionHandler.saveAuto(piece, piece.node.position);
+        }
+        
         this.putPiecesToSelectionBar();
     },
 
@@ -138,7 +149,9 @@ cc.Class({
     reset(){
         if(!this.isGenerating){
             this.isGenerating = true;
-            this.node.getChildByName('FunctionHandler').getComponent('FunctionHandler').history.length = 0;
+            this.functionHandler.history.length = 0;
+            this.functionHandler.hints.length = 0;
+            this.functionHandler.autoes.length = 0;
             this.node.getChildByName('SelectionBar').getComponent('SelectionBar').clear();
             this.createGame();
             this.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(()=>{this.isGenerating = false;}, this)));
@@ -227,7 +240,6 @@ cc.Class({
         for(let piece of arrayPieceCreations)cc.log("Block each Piece : " + piece.numberBlocks);
         //get grid available to put block : out put to gridAvaiable
         let gridAvaiable = [];
-        {
             let rangerVertical = new Range(), rangerHorizontal = new Range();
             rangerVertical.min = this.positionStartGenHexa.row - this.rangeGenerateHexa.height / 2;
             rangerVertical.max = this.positionStartGenHexa.row + this.rangeGenerateHexa.height / 2;
@@ -239,7 +251,7 @@ cc.Class({
                     for(let column = 0; column < this.realSizePlay.width; column++)
                         if(column >= ~~rangerHorizontal.min && column <= rangerHorizontal.max)
                             gridAvaiable.push({row, column});
-        }
+                            
         let usedPosition = [];
 
         let positionAvailable = (row, column) =>{
@@ -260,26 +272,45 @@ cc.Class({
             return result;
         };
         //generate blocks
+        let createPosBlocks = (indexAvailable, creation) =>{
+            let position = gridAvaiable[indexAvailable];
+            creation.piecePositions.push(position);
+            usedPosition.push({row: position.row, column: position.column});
+            creation.numberBlocks--;
+            gridAvaiable.splice(indexAvailable, 1);
+        };
+        let createPosBlocksWithNumber = (number, creation) =>{
+            let tempCreation = this.suffleArray(creation.piecePositions);
+            let count = 1;
+            for(count = 1; count <= number; count++){
+                for(let start of tempCreation){
+                    let around = getPositionAround(start.row, start.column);
+                    if(around.length > 0){
+                        let randomIndex = getRandomInArray(around);
+                        createPosBlocks(randomIndex, creation);    
+                        break;
+                    }
+                }
+            }
+            return count == number;
+        };
         //start of each piece
-        for(let i = 0; i < numberPieces; i++){
+        for(let i = 0; i < numberPieces;){
             if(i == 0){
                 let center = positionAvailable(~~this.positionStartGenHexa.row, ~~this.positionStartGenHexa.column);
-                let position = gridAvaiable[center];
-                arrayPieceCreations[i].piecePositions.push(position);
-                usedPosition.push({row: position.row, column: position.column});
-                arrayPieceCreations[i].numberBlocks--;
-                gridAvaiable.splice(center, 1);
+                createPosBlocks(center, arrayPieceCreations[i]);
+                createPosBlocksWithNumber(this.numberBlockEachPieces.min - 1, arrayPieceCreations[i]);
+                i++;
             }else{
-                let randomPiece = arrayPieceCreations[~~(Math.random() * i)];
-                let firstBlockPos = randomPiece.piecePositions[0];
+                let index = ~~(Math.random() * i);
+                let randomPiece = arrayPieceCreations[index];
+                let firstBlockPos = randomPiece.piecePositions[~~(Math.random() * randomPiece.piecePositions.length)];
                 let around = getPositionAround(firstBlockPos.row, firstBlockPos.column);
                 if(around.length > 0){
                     let randomIndex = getRandomInArray(around);
-                    let position = gridAvaiable[randomIndex];
-                    arrayPieceCreations[i].piecePositions.push(position);
-                    usedPosition.push({row: position.row, column: position.column});
-                    arrayPieceCreations[i].numberBlocks--;
-                    gridAvaiable.splice(randomIndex, 1);
+                    createPosBlocks(randomIndex, arrayPieceCreations[i]);
+                    let isFinish = createPosBlocksWithNumber(this.numberBlockEachPieces.min - 1, arrayPieceCreations[i]);
+                    i++;
                 }
             }
         }
@@ -292,11 +323,7 @@ cc.Class({
                     let around = getPositionAround(randomStart.row, randomStart.column);
                     if(around.length > 0){
                         let randomIndex = getRandomInArray(around);
-                        let position = gridAvaiable[randomIndex];
-                        creation.piecePositions.push(position);
-                        usedPosition.push({row: position.row, column: position.column});
-                        creation.numberBlocks--;
-                        gridAvaiable.splice(randomIndex, 1);
+                        createPosBlocks(randomIndex, creation);
                         isFinished = false;
                     }
                 }
@@ -304,62 +331,87 @@ cc.Class({
             if(isFinished)break;
         }
 
-        //for hole..
+        //for hole
         {
             let numberHoles = this.getRandom(this.numberHoles.min, this.numberHoles.max);
             if(numberHoles > 0 && this.rateHole > 0){
                 if(~~(Math.random() * 100) <= this.rateHole){
-                    let getSameTypesArond = (row, column, arraySameType) =>{
-                        let around = [];
+                    //for specical case
+                    for(let pos of gridAvaiable){
+                        let count = 0;
                         for(let i = 0; i < EDirection.COUNT; i++){
-                            let position = this.getHexagonPosAtDirection(i, row, column);
+                            let position = this.getHexagonPosAtDirection(i, pos.row, pos.column);
                             let index = usedPosition.findIndex(element =>{
                                 return element.row == position.row && element.column == position.column;
-                            }, this);
-                            if(index != - 1)around.push(index);
+                            });
+                            if(index != - 1)count++;
                         }
-                        let count = -1;
-                        if(around.length >= EDirection.COUNT){
-                            count = 0;
-                            for(let pos of around){
-                                let find = arraySameType.findIndex(ele =>{return ele.row == pos.row && ele.column == pos.column;});
-                                if(find != -1)count++;
+                        if(count < 6 )continue;
+                        if(getPositionAround(pos.row, pos.column) == 0){
+                            let hole = this.createBlockAtPos(pos.row, pos.column, this.hole);
+                            this.listHoles.push(hole);
+                            numberHoles--;
+                        }
+                    }
+                    //normal case
+                    if(numberHoles > 0){
+                        let getSameTypesArond = (row, column) =>{
+                            let around = [];
+                            for(let i = 0; i < EDirection.COUNT; i++){
+                                let position = this.getHexagonPosAtDirection(i, row, column);
+                                let index = usedPosition.findIndex(element =>{
+                                    return element.row == position.row && element.column == position.column;
+                                }, this);
+                                if(index != - 1)around.push(index);
                             }
-                        }
-                        console.log("Count : " + count);
-                        return count;
-                    };
-                    for(let creation of arrayPieceCreations){
-                        if(creation.piecePositions.length > this.numberBlockEachPieces.min){
-                            creation.piecePositions = this.suffleArray(creation.piecePositions);
-                            for(let i = 0; i < creation.piecePositions.length; i++){
-                                let start = creation.piecePositions[i];
-                                let sameAround = getSameTypesArond(start.row, start.column, creation.piecePositions);
-                                if(sameAround > 2 || sameAround == 0 || sameAround == 1){
-                                    if(this.listHoles.length == 0){
-                                        let hole = this.createBlockAtPos(start.row, start.column, this.hole);
-                                        this.listHoles.push(hole);
-                                        creation.piecePositions.splice(i, 1);
-                                        numberHoles--;
-                                        break;
+                            if(around.length >= EDirection.COUNT){
+                                for(let creation of arrayPieceCreations){
+                                    let countEach = 0;
+                                    for(let posI = 0; posI < around.length;){
+                                        let pos = around[posI];
+                                        let find = creation.piecePositions.findIndex(ele =>{return ele.row == pos.row && ele.column == pos.column;});
+                                        if(find != -1){
+                                            countEach++;
+                                            around.splice(posI, 1);
+                                        }else  posI++;
                                     }
-                                    else if(~~(Math.random() * 100) <= this.rateHole){
-                                        let hole = this.createBlockAtPos(start.row, start.column, this.hole);
-                                        this.listHoles.push(hole);
-                                        creation.piecePositions.splice(i, 1);
-                                        numberHoles--;
-                                        break;
-                                    }
+                                    if(countEach <= 2)return false;
                                 }
-                                if(numberHoles == 0)break;
+                                return true;
                             }
+                            return false;
+                        };
+                        for(let creation of arrayPieceCreations){
+                            if(creation.piecePositions.length > this.numberBlockEachPieces.min){
+                                creation.piecePositions = this.suffleArray(creation.piecePositions);
+                                for(let i = 0; i < creation.piecePositions.length; i++){
+                                    let start = creation.piecePositions[i];
+                                    let sameAround = getSameTypesArond(start.row, start.column);
+                                    if(sameAround){
+                                        if(this.listHoles.length == 0){
+                                            let hole = this.createBlockAtPos(start.row, start.column, this.hole);
+                                            this.listHoles.push(hole);
+                                            creation.piecePositions.splice(i, 1);
+                                            numberHoles--;
+                                            break;
+                                        }
+                                        else if(~~(Math.random() * 100) <= this.rateHole){
+                                            let hole = this.createBlockAtPos(start.row, start.column, this.hole);
+                                            this.listHoles.push(hole);
+                                            creation.piecePositions.splice(i, 1);
+                                            numberHoles--;
+                                            break;
+                                        }
+                                    }
+                                    if(numberHoles == 0)break;
+                                }
+                            }
+                            if(numberHoles == 0)break;
                         }
-                        if(numberHoles == 0)break;
                     }
                 }
             }
         }
-        
         //create blocks
         this.listHexagonsGroup.length = 0;
         for(let groupI = 0; groupI < this.numberHexagonsGroup; groupI++){
@@ -511,7 +563,7 @@ cc.Class({
         console.log(`Screen : ${this.node.width} - ${this.node.height}`);
         let measureScreenSide = this.node.width < this.node.height ? this.node.width : this.node.height;
         let measurePlaySide = (this.realSizePlay.width > this.realSizePlay.height ? this.realSizePlay.width : this.realSizePlay.height) + 1;
-        this.sizeHexagonOnBoard = cc.size(measureScreenSide / measurePlaySide, measureScreenSide / measurePlaySide);
+        this.sizeHexagonOnBoard = cc.size(measureScreenSide / (measurePlaySide + 2), measureScreenSide / (measurePlaySide + 2));
 
         //create grid
         this.grid.length = 0;
