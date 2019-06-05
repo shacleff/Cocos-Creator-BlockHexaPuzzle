@@ -8,6 +8,7 @@ cc.Class({
     },
 
     onLoad(){
+        this.canRotate = false;
         this.sub = cc.v2(0,0);
         this.positionInGameBoard = cc.v2(9999,9999);
     },

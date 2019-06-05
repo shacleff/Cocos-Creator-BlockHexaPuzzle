@@ -129,7 +129,7 @@ cc.Class({
             for(let piece of group.pieces)
                 this.functionHandler.saveAuto(piece, piece.node.position);
         }
-        
+        this.setRotateForPieces();
         this.putPiecesToSelectionBar();
     },
 
@@ -177,6 +177,12 @@ cc.Class({
                 this.nextLevel();
                 this.reset();
             }, this)));
+        }
+    },
+
+    setRotateForPieces(){
+        for(let group of this.listHexagonsGroup){
+            for(let piece of group.pieces)piece.canRotate = true;
         }
     },
 

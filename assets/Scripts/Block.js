@@ -20,6 +20,7 @@ cc.Class({
     },
 
     onLoad () {
+        this.countTime = Date.now();
         this.node.on(cc.Node.EventType.TOUCH_START, this.touchStart, this)
         this.node.on(cc.Node.EventType.TOUCH_MOVE, this.touchMove, this)
         this.node.on(cc.Node.EventType.TOUCH_END, this.touchEnd, this)
@@ -27,6 +28,7 @@ cc.Class({
     },
 
     touchStart(event){
+        this.countTime = Date.now();
     },
 
     touchMove(event){
@@ -51,6 +53,10 @@ cc.Class({
 
     touchEnd(event){
         if(this.piece){
+            let time = Date.now();
+            if(time - this.countTime <= 400 && this.piece.node.scale < 1){
+                window.gamePlay.actionHandler.rotatePiece(this.piece, 240);
+            };
             let hexagonsAvaiable = window.gamePlay.isPieceFit(this.piece);
             if(hexagonsAvaiable.length == this.piece.blocks.length){
                 window.gamePlay.setToNewHexagons(this.piece, hexagonsAvaiable);

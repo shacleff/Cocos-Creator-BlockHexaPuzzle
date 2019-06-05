@@ -32,10 +32,14 @@ export var ActionHandler = cc.Class({
     },
 
     rotatePiece(piece, angle){
-        piece.node.angle = angle;
-        piece.blocks.forEach(block=>{
-            block.angle = -angle;
-        });
+        console.log("In rotate piece");
+        if(piece.canRotate){
+            console.log("can rotate piece");
+            piece.node.angle = angle;
+            piece.blocks.forEach(block=>{
+                block.angle = -angle;
+            });
+        }
     },
 
 });
