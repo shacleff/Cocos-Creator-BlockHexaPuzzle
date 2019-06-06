@@ -21,6 +21,7 @@ cc.Class({
 
     onLoad () {
         this.countTime = Date.now();
+
         this.node.on(cc.Node.EventType.TOUCH_START, this.touchStart, this)
         this.node.on(cc.Node.EventType.TOUCH_MOVE, this.touchMove, this)
         this.node.on(cc.Node.EventType.TOUCH_END, this.touchEnd, this)
@@ -28,19 +29,18 @@ cc.Class({
     },
 
     touchStart(event){
+        let time = Date.now();
+        if(time - this.countTime <= 300){
+            window.gamePlay.actionHandler.rotatePiece(this.piece);
+        };
         this.countTime = Date.now();
     },
 
     touchMove(event){
         if(this.piece){
             window.gamePlay.releasePieceFromHexagon(this.piece);
-            // let touchLocation = event.touch.getLocation();
-            // let canvansCenter = cc.v2(window.gamePlay.node.width / 2, window.gamePlay.node.height / 2);
-            // touchLocation = touchLocation.sub(canvansCenter);
-            // let offset = cc.v2(touchLocation.x - this.node.x, touchLocation.y - this.node.y);
             let offset = event.touch.getDelta();
             this.piece.moveBy(offset);
-
             let hexagonsAvaiable = window.gamePlay.isPieceFit(this.piece);
             window.gamePlay.hideAllShadow();
             if(hexagonsAvaiable.length == this.piece.blocks.length){
@@ -53,10 +53,6 @@ cc.Class({
 
     touchEnd(event){
         if(this.piece){
-            let time = Date.now();
-            if(time - this.countTime <= 400 && this.piece.node.scale < 1){
-                window.gamePlay.actionHandler.rotatePiece(this.piece, 240);
-            };
             let hexagonsAvaiable = window.gamePlay.isPieceFit(this.piece);
             if(hexagonsAvaiable.length == this.piece.blocks.length){
                 window.gamePlay.setToNewHexagons(this.piece, hexagonsAvaiable);

@@ -73,4 +73,20 @@ cc.Class({
         }    
     },
 
+    showCanRotate(){
+        this.node.runAction(cc.repeatForever(cc.sequence(
+            cc.rotateBy(0.2, 30),
+            cc.rotateBy(0.2, -30),
+            cc.delayTime(0.5),
+            cc.rotateBy(0.2, -30),
+            cc.rotateBy(0.2, 30),
+            cc.delayTime(0.5),
+        )));
+    },
+    stopShowCanRotate(rotateValue){
+        this.node.stopAllActions();
+        let n = (Math.round(this.node.angle / rotateValue) + 1) % 3;
+        this.node.angle = rotateValue * n;
+    }
+
 })

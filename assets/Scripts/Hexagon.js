@@ -36,6 +36,7 @@ cc.Class({
             default: null,
             visible: false,
         },
+        shadowOpacity : 120
     },
     // LIFE-CYCLE CALLBACKS:
     
@@ -51,7 +52,7 @@ cc.Class({
             let sprite = this.shadow.getComponent(cc.Sprite);
             if(sprite)sprite.spriteFrame = spriteFrame;
             this.shadow.setContentSize(this.node.getContentSize());
-            this.shadow.opacity = 100;
+            this.shadow.opacity = this.shadowOpacity;
         }
     },
     hideShadow(){

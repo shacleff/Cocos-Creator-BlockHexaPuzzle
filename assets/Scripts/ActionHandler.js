@@ -12,7 +12,8 @@ export var ActionHandler = cc.Class({
     extends: cc.Component,
 
     properties: {
-        selectionScale : 0.5
+        selectionScale : 0.5,
+        angleRotate : 120
     },
     // LIFE-CYCLE CALLBACKS:
 
@@ -31,14 +32,15 @@ export var ActionHandler = cc.Class({
         piece.node.scale = value;
     },
 
-    rotatePiece(piece, angle){
-        console.log("In rotate piece");
+    rotatePiece(piece){
         if(piece.canRotate){
-            console.log("can rotate piece");
-            piece.node.angle = angle;
+            piece.stopShowCanRotate(this.angleRotate);
+            piece.showCanRotate();
             piece.blocks.forEach(block=>{
-                block.angle = -angle;
+                block.angle -= this.angleRotate;
+                if(block.angle < 0)block.angle += 360;
             });
+            if(piece.node.angle >= 360)piece.node.angle = 0;
         }
     },
 

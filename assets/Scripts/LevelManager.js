@@ -27,6 +27,10 @@ let Difficult = cc.Class({
             type: Range,
             default: null
         },
+        rotatablePieceRate:{    //array percent of spawn rate
+            type: cc.Integer,
+            default: []
+        },
         rateHole: 0
     }
 });
@@ -65,10 +69,9 @@ cc.Class({
             this.currentDifficult--;
         console.log("difficult : " + (this.currentDifficult + 1) + " with at time : " + this.countTime);
         this.countTime = 0;
-        let result = {
-            levelNumber : ++this.currentLevel,
-            difficult : this.difficults[this.currentDifficult]
-        }
+        let result = new Level();
+        result.levelNumber = ++this.currentLevel;
+        result.difficult = this.difficults[this.currentDifficult];
         if(this.represent){
             let label = this.represent.getChildByName('Number').getComponent(cc.Label);
             if(label)label.string = (this.currentLevel + 1);

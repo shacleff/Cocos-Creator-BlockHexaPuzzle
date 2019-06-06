@@ -87,6 +87,7 @@ cc.Class({
         this.listPositionAvaiable = [];
         this.listHexagonsGroup = [];    //HexagonsGroup array
         this.listHoles = [];
+        this.percentRotatablePiece = [];
     },
 
     start () {
@@ -143,6 +144,7 @@ cc.Class({
             this.numberHoles = new Range();
             this.numberHoles.set(level.difficult.numberHoles);
             this.rateHole = level.difficult.rateHole;
+            this.percentRotatablePiece = level.difficult.rotatablePieceRate;
         }
     },
 
@@ -181,8 +183,22 @@ cc.Class({
     },
 
     setRotateForPieces(){
-        for(let group of this.listHexagonsGroup){
-            for(let piece of group.pieces)piece.canRotate = true;
+        if(this.percentRotatablePiece.length > 0){
+            let number = 0;
+            for(let percent of this.percentRotatablePiece)
+                if(~~(Math.random() * 100) < percent)number++;
+            
+            if(number > 0){
+                let pieces = Array.from(this.listHexagonsGroup[0].pieces);
+                while(number > 0){
+                    if(pieces.length == 0)break;
+                    let randomIndex = ~~(Math.random() * pieces.length);
+                    let piece = pieces[randomIndex];
+                    piece.canRotate = true;
+                    piece.showCanRotate();
+                    pieces.splice(randomIndex);
+                }
+            }
         }
     },
 
@@ -569,7 +585,14 @@ cc.Class({
         console.log(`Screen : ${this.node.width} - ${this.node.height}`);
         let measureScreenSide = this.node.width < this.node.height ? this.node.width : this.node.height;
         let measurePlaySide = (this.realSizePlay.width > this.realSizePlay.height ? this.realSizePlay.width : this.realSizePlay.height) + 1;
-        this.sizeHexagonOnBoard = cc.size(measureScreenSide / (measurePlaySide + 2), measureScreenSide / (measurePlaySide + 2));
+        this.sizeHexagonOnBoard = cc.size(measureScreenSide / (measurePlaySide + 1), measureScreenSide / (measurePlaySide + 1));
+
+        //calculate realsize each block
+        let obj = cc.instantiate(this.blockPrefab);
+        let originSize = obj.getContentSize();
+        let ratio = originSize.width / this.sizeHexagonOnBoard.width;
+        this.sizeHexagonOnBoard.height = originSize.height / ratio;
+        obj.destroy();
 
         //create grid
         this.grid.length = 0;
