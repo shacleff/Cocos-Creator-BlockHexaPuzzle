@@ -56,7 +56,8 @@ cc.Class({
             default: []
         },
     },
-    onLoad(){
+
+    preStart(){
         this.countTime = 0;
         this.currentDifficult -= 2;
         this.currentLevel -= 2;

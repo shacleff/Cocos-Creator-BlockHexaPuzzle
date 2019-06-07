@@ -34,8 +34,9 @@ export var ActionHandler = cc.Class({
 
     rotatePiece(piece){
         if(piece.canRotate){
-            piece.stopShowCanRotate(this.angleRotate);
-            piece.showCanRotate();
+            this.stopShowCanRotate(piece);
+            this.showCanRotate(piece);
+            piece.node.angle += this.angleRotate;
             piece.blocks.forEach(block=>{
                 block.angle -= this.angleRotate;
                 if(block.angle < 0)block.angle += 360;
@@ -43,6 +44,28 @@ export var ActionHandler = cc.Class({
             if(piece.node.angle >= 360)piece.node.angle = 0;
         }
     },
+
+    showCanRotate(piece){
+        if(piece.canRotate){
+            piece.node.runAction(cc.repeatForever(cc.sequence(
+                cc.rotateBy(0.2, 30),
+                cc.rotateBy(0.2, -30),
+                cc.delayTime(2),
+                cc.rotateBy(0.2, -30),
+                cc.rotateBy(0.2, 30),
+                cc.delayTime(2),
+            )));
+        }
+        
+    },
+
+    stopShowCanRotate(piece){
+        if(piece.canRotate){
+            piece.node.stopAllActions();
+            let n = (Math.round(Math.abs(piece.node.angle) / this.angleRotate)) % 3;
+            piece.node.angle = this.angleRotate * n;
+        }
+    }
 
 });
 

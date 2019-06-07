@@ -29,11 +29,14 @@ cc.Class({
     },
 
     touchStart(event){
-        let time = Date.now();
-        if(time - this.countTime <= 300){
-            window.gamePlay.actionHandler.rotatePiece(this.piece);
-        };
-        this.countTime = Date.now();
+        if(this.piece){
+            let time = Date.now();
+            if(time - this.countTime <= 250 && this.piece.node.scale != 1){
+                window.gamePlay.actionHandler.rotatePiece(this.piece);
+            }
+            window.gamePlay.actionHandler.stopShowCanRotate(this.piece);
+            this.countTime = Date.now();
+        }
     },
 
     touchMove(event){
@@ -59,6 +62,9 @@ cc.Class({
             }
             this.piece.revertToPieces(this.durationMove);
             window.gamePlay.checkWin();
+            if(this.piece.node.scale != 1){
+                window.gamePlay.actionHandler.showCanRotate(this.piece);
+            }
         }
         window.gamePlay.hideAllShadow();
     },

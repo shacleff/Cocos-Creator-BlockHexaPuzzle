@@ -76,13 +76,19 @@ cc.Class({
             default: null,
             visible: false
         },
+
+        resultNode : cc.Node,
+        levelUnlockLabel: cc.Node,
     },
 
     // LIFE-CYCLE CALLBACKS:
     onLoad(){
+        // cc.sys.localStorage.clear();
         window.gamePlay = this;
         this.actionHandler = this.node.getChildByName('ActionHandler').getComponent('ActionHandler');
         this.functionHandler = this.node.getChildByName('FunctionHandler').getComponent('FunctionHandler');
+        this.levelMgr = this.node.getChildByName('LevelManager').getComponent('LevelManager');
+        this.saveMgr = this.node.getChildByName('SaveManager').getComponent('SaveManager');
         this.grid = [];
         this.listPositionAvaiable = [];
         this.listHexagonsGroup = [];    //HexagonsGroup array
@@ -91,32 +97,23 @@ cc.Class({
     },
 
     start () {
+        this.resultNode.active = false;
         this.isGenerating = true;
         this.realSizePlay = cc.size(this.maxSizePlayBoard.width, this.maxSizePlayBoard.height);
         this.sizeGenerate = cc.size(0, 0);
         this.positionStartGenHexa = {row : this.realSizePlay.height / 2, column : this.realSizePlay.width / 2};
         this.maxHexagon = this.realSizePlay.width * this.realSizePlay.height;
         this.generateGridPosition();
+        if(this.levelMgr)this.levelMgr.preStart();
+        if(this.functionHandler)this.functionHandler.preStart();
         this.nextLevel();
         this.createGame();
         this.node.runAction(cc.sequence(cc.delayTime(0.5), cc.callFunc(()=>{this.isGenerating = false;}, this)));
     },
 
     createGame(){
-        if(this.listPositionAvaiable.length > 0){
-            this.listPositionAvaiable.length = 0;
-        }
-        if(this.listHoles.length > 0){
-            for(let hole of this.listHoles)hole.destroy();
-            this.listHoles.length = 0;
-        }
-        if(this.listHexagonsGroup.length > 0){
-            for(let group of this.listHexagonsGroup){
-                group.clear();
-                group.node.destroy();
-            }
-            this.listHexagonsGroup.length = 0;
-        }
+        this.isWin = false;
+        this.resultNode.active = false;
         this.numberHexagons = this.getRandom(this.totalNumberHexagons.min, this.totalNumberHexagons.max);
         console.log("Number hexagon : " + this.numberHexagons);
         this.rangeGenerateHexa = this.calculateRangeGenHexa();
@@ -135,9 +132,8 @@ cc.Class({
     },
 
     nextLevel(){
-        let levelChild = this.node.getChildByName('LevelManager');
-        if(levelChild){
-            let level = levelChild.getComponent('LevelManager').nextLevel();
+        if(this.levelMgr){
+            let level = this.levelMgr.nextLevel();
             this.totalNumberHexagons.set(level.difficult.totalBlocks);
             this.numberPieces.set(level.difficult.pieces);
             this.numberBlockEachPieces.set(level.difficult.piecesBlocks);
@@ -148,12 +144,30 @@ cc.Class({
         }
     },
 
+    clearBoard(){
+        this.functionHandler.history.length = 0;
+        this.functionHandler.hints.length = 0;
+        this.functionHandler.autoes.length = 0;
+        if(this.listPositionAvaiable.length > 0){
+            this.listPositionAvaiable.length = 0;
+        }
+        if(this.listHoles.length > 0){
+            for(let hole of this.listHoles)hole.destroy();
+            this.listHoles.length = 0;
+        }
+        if(this.listHexagonsGroup.length > 0){
+            for(let group of this.listHexagonsGroup){
+                group.clear();
+                group.node.destroy();
+            }
+            this.listHexagonsGroup.length = 0;
+        }
+    },
+
     reset(){
         if(!this.isGenerating){
             this.isGenerating = true;
-            this.functionHandler.history.length = 0;
-            this.functionHandler.hints.length = 0;
-            this.functionHandler.autoes.length = 0;
+            this.clearBoard();
             this.node.getChildByName('SelectionBar').getComponent('SelectionBar').clear();
             this.createGame();
             this.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(()=>{this.isGenerating = false;}, this)));
@@ -163,21 +177,24 @@ cc.Class({
     },
 
     checkWin(){
-        let isWin = true; 
+        this.isWin = true; 
         for(let group of this.listHexagonsGroup){
             for(let hexagon of group.hexagons){
                 if(hexagon.block == null){
-                    isWin = false;
+                    this.isWin = false;
                     break;
                 }
             }
         }
-        if(isWin){
+        if(this.isWin){
             //do something
             console.log("WIN");
-            this.node.runAction(cc.sequence(cc.delayTime(0.0), cc.callFunc(()=>{
-                this.nextLevel();
-                this.reset();
+            this.nextLevel();
+            this.saveMgr.saveData(this.levelMgr.currentLevel + 1, this.levelMgr.currentDifficult + 1, null);
+            this.node.runAction(cc.sequence(cc.delayTime(0.5), cc.callFunc(()=>{
+                this.clearBoard();
+                this.resultNode.active = true;
+                this.levelUnlockLabel.getComponent(cc.Label).string = "Level " + (this.levelMgr.currentLevel + 1);
             }, this)));
         }
     },
@@ -185,8 +202,9 @@ cc.Class({
     setRotateForPieces(){
         if(this.percentRotatablePiece.length > 0){
             let number = 0;
-            for(let percent of this.percentRotatablePiece)
+            for(let percent of this.percentRotatablePiece){
                 if(~~(Math.random() * 100) < percent)number++;
+            }        
             
             if(number > 0){
                 let pieces = Array.from(this.listHexagonsGroup[0].pieces);
@@ -195,8 +213,13 @@ cc.Class({
                     let randomIndex = ~~(Math.random() * pieces.length);
                     let piece = pieces[randomIndex];
                     piece.canRotate = true;
-                    piece.showCanRotate();
+                    //set rotate
+                    let randomRo = ~~(Math.random() * 2);
+                    for(let i = 0; i < randomRo; i++)this.actionHandler.rotatePiece(piece);
+
+                    this.actionHandler.showCanRotate(piece);
                     pieces.splice(randomIndex);
+                    number--;
                 }
             }
         }

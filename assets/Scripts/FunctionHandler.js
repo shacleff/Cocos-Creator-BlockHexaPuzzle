@@ -1,13 +1,3 @@
-// Learn cc.Class:
-//  - [Chinese] https://docs.cocos.com/creator/manual/zh/scripting/class.html
-//  - [English] http://docs.cocos2d-x.org/creator/manual/en/scripting/class.html
-// Learn Attribute:
-//  - [Chinese] https://docs.cocos.com/creator/manual/zh/scripting/reference/attributes.html
-//  - [English] http://docs.cocos2d-x.org/creator/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - [Chinese] https://docs.cocos.com/creator/manual/zh/scripting/life-cycle-callbacks.html
-//  - [English] https://www.cocos2d-x.org/docs/creator/manual/en/scripting/life-cycle-callbacks.html
-
 function History(piece, position){
     this.piece = piece;
     this.position = position;
@@ -30,8 +20,21 @@ cc.Class({
         history: [],    //History array
         hints: [],
         hintRate : 30,
+        numberHint: 1,
+        countHintNode: cc.Node,
         autoes: [],
         isAutoPlay: false,
+    },
+
+    onLoad(){
+        this.countHintLabel = this.countHintNode.getComponent(cc.Label);
+        this.countHintLabel.string = this.numberHint;
+    },
+
+    preStart(){
+        window.gamePlay.saveMgr.saveData(null, null, this.numberHint);
+        this.countHintLabel.string = this.numberHint;
+        console.log("hint " + this.countHintNode);
     },
 
     update(dt){
@@ -40,6 +43,7 @@ cc.Class({
             let incre = 0.5;
             for(let auto of this.autoes){
                 if(auto.piece && auto.piece.blocks.length > 0 && auto.piece.node.getNumberOfRunningActions() == 0){
+                    window.gamePlay.actionHandler.stopShowCanRotate(auto.piece);
                     auto.piece.node.runAction(cc.sequence(
                                                 cc.delayTime(time), 
                                                 cc.callFunc(()=>{auto.piece.moveBy(cc.v2(0,0));}),
@@ -53,8 +57,12 @@ cc.Class({
         }
     },
 
+    nextLevel(){
+        window.gamePlay.reset();
+    },
+
     undo(){
-        if(this.history.length > 0){
+        if(this.history.length > 0 && !window.gamePlay.isWin){
             let lastest = this.history[this.history.length - 1];
             if(lastest.piece.positionInGameBoard.x == 9999){
                 lastest.piece.positionInGameBoard = lastest.position;
@@ -67,11 +75,15 @@ cc.Class({
     },
 
     refresh(){
+        if(window.gamePlay.isWin)return;
+        
         this.history.length = 0;
         window.gamePlay.reset();
     },
 
     hint(){
+        if(window.gamePlay.isWin || this.numberHint <= 0)return;
+
         window.gamePlay.hideAllShadow();
         let numberPieces = 0;
         for(let group of window.gamePlay.listHexagonsGroup) numberPieces += group.pieces.length;
@@ -92,6 +104,10 @@ cc.Class({
             }
             --rate;
         }
+        this.numberHint--;
+        //set count
+        this.countHintLabel.string = this.numberHint;
+        window.gamePlay.saveMgr.saveData(null, null, this.numberHint);
     },
 
     autoPlay(){
