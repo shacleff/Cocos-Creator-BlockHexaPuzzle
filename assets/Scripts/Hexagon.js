@@ -36,15 +36,21 @@ cc.Class({
             default: null,
             visible: false,
         },
-        shadowOpacity : 120
+        shadowOpacity : 90
     },
     // LIFE-CYCLE CALLBACKS:
+
+    onLoad(){
+        this.hinted = false;
+    },
     
     createShadowOn(prefab){
         this.shadow = cc.instantiate(prefab);
-        this.shadow.setPosition(0,0);
+        // this.shadow.setPosition(0,0);
+        this.shadow.setPosition(this.node.position);
         this.shadow.setContentSize(this.node.getContentSize());
-        this.node.addChild(this.shadow);
+        // this.node.addChild(this.shadow);
+        window.gamePlay.node.addChild(this.shadow);
         this.shadow.opacity = 0;
     },
     setShadow(spriteFrame){
@@ -55,8 +61,18 @@ cc.Class({
             this.shadow.opacity = this.shadowOpacity;
         }
     },
-    hideShadow(){
-        this.shadow.opacity = 0;
+    setHint(spriteFrame){
+        this.setShadow(spriteFrame);
+        this.shadow.zIndex = 20;
+        this.hinted = true;
+    },
+    hideShadow(force){
+        if(!this.hinted || force)
+            this.shadow.opacity = 0;
+    },
+
+    clear(){
+        this.shadow.destroy();
     }
 
 });

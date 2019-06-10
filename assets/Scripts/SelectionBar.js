@@ -115,6 +115,12 @@ cc.Class({
             }
         }    
 
+        for(let pieceRect of this.pieceRects)
+            if(pieceRect.piece && pieceRect.piece.canRotate){
+                window.gamePlay.tutorial.showRotatePieceTutorial(pieceRect.piece.node);
+                break;
+            }
+
 
         //ONLY test Rect
         let test = window.gamePlay.node.getComponent(cc.Graphics);

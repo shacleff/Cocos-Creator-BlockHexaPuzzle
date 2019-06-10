@@ -33,6 +33,7 @@ cc.Class({
             let time = Date.now();
             if(time - this.countTime <= 250 && this.piece.node.scale != 1){
                 window.gamePlay.actionHandler.rotatePiece(this.piece);
+                window.gamePlay.tutorial.hideRotatePieceTutorial();
             }
             window.gamePlay.actionHandler.stopShowCanRotate(this.piece);
             this.countTime = Date.now();
@@ -45,7 +46,7 @@ cc.Class({
             let offset = event.touch.getDelta();
             this.piece.moveBy(offset);
             let hexagonsAvaiable = window.gamePlay.isPieceFit(this.piece);
-            window.gamePlay.hideAllShadow();
+            window.gamePlay.hideAllShadow(false);
             if(hexagonsAvaiable.length == this.piece.blocks.length){
                 window.gamePlay.setToNewHexagons(this.piece, hexagonsAvaiable);
             }else{
@@ -66,6 +67,6 @@ cc.Class({
                 window.gamePlay.actionHandler.showCanRotate(this.piece);
             }
         }
-        window.gamePlay.hideAllShadow();
+        window.gamePlay.hideAllShadow(false);
     },
 });

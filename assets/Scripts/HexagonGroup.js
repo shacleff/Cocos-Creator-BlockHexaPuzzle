@@ -25,8 +25,10 @@ cc.Class({
     },
 
     clear(){
-        for(let hexa of this.hexagons)
+        for(let hexa of this.hexagons){
+            hexa.clear();
             hexa.node.destroy();
+        }
         for(let piece of this.pieces)
             piece.node.destroy();
         this.hexagons.length = 0;

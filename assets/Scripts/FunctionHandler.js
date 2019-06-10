@@ -24,6 +24,7 @@ cc.Class({
         countHintNode: cc.Node,
         autoes: [],
         isAutoPlay: false,
+        isHint :false,
     },
 
     onLoad(){
@@ -76,34 +77,40 @@ cc.Class({
 
     refresh(){
         if(window.gamePlay.isWin)return;
-        
+        let listHexagon = window.gamePlay.listHexagonsGroup[0];
         this.history.length = 0;
-        window.gamePlay.reset();
+        for(let piece of listHexagon.pieces){
+            piece.positionInGameBoard.x = 9999;
+            piece.revertToPieces();
+        }
+       
+        //window.gamePlay.reset();
     },
 
     hint(){
-        if(window.gamePlay.isWin || this.numberHint <= 0)return;
+        if(window.gamePlay.isWin || this.numberHint <= 0 || this.hints.length <= 0)return;
 
-        window.gamePlay.hideAllShadow();
+        window.gamePlay.hideAllShadow(false);
         let numberPieces = 0;
         for(let group of window.gamePlay.listHexagonsGroup) numberPieces += group.pieces.length;
         let rate = Math.round(numberPieces / 100 * this.hintRate);
-        let tempHint = Array.from(this.hints);
-        for(let i = tempHint.length - 1; i > 0; i--){
+        for(let i = this.hints.length - 1; i > 0; i--){
             let j = ~~(Math.random() * (i + 1));
-            [tempHint[i], tempHint[j]] = [tempHint[j], tempHint[i]];
+            [this.hints[i], this.hints[j]] = [this.hints[j], this.hints[i]];
         }
         while(rate > 0){
-            let frame = tempHint[0].frame;
-            for(let i = 0; i < tempHint.length;){
-                let hint = tempHint[i];
+            let frame = this.hints[0].frame;
+            for(let i = 0; i < this.hints.length;){
+                let hint = this.hints[i];
                 if(hint.frame.name == frame.name){
-                    hint.hexagon.setShadow(hint.frame);
-                    tempHint.splice(i, 1);
+                    // hint.hexagon.setShadow(hint.frame);
+                    hint.hexagon.setHint(hint.frame);
+                    this.hints.splice(i, 1);
                 }else i++;
             }
             --rate;
         }
+        this.isHint = true;
         this.numberHint--;
         //set count
         this.countHintLabel.string = this.numberHint;

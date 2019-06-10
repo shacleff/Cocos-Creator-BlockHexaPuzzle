@@ -53,6 +53,10 @@ cc.Class({
             default: null,
             type: cc.Prefab
         },
+        shadowPrefab:{
+            default: null,
+            type: cc.Prefab
+        },
         blockTypes:{
             default: [],
             type: cc.SpriteFrame
@@ -76,22 +80,24 @@ cc.Class({
             default: null,
             visible: false
         },
-
+        listHexagonsGroup : [], 
         resultNode : cc.Node,
         levelUnlockLabel: cc.Node,
     },
 
     // LIFE-CYCLE CALLBACKS:
     onLoad(){
-        // cc.sys.localStorage.clear();
+        cc.sys.localStorage.clear();
         window.gamePlay = this;
         this.actionHandler = this.node.getChildByName('ActionHandler').getComponent('ActionHandler');
         this.functionHandler = this.node.getChildByName('FunctionHandler').getComponent('FunctionHandler');
         this.levelMgr = this.node.getChildByName('LevelManager').getComponent('LevelManager');
         this.saveMgr = this.node.getChildByName('SaveManager').getComponent('SaveManager');
+        this.tutorial = this.node.getChildByName('Toturial').getComponent('Tutorial');
+        this.tutorial.load();
         this.grid = [];
         this.listPositionAvaiable = [];
-        this.listHexagonsGroup = [];    //HexagonsGroup array
+        //this.listHexagonsGroup = [];    //HexagonsGroup array
         this.listHoles = [];
         this.percentRotatablePiece = [];
     },
@@ -512,8 +518,8 @@ cc.Class({
                     hexagon.setContentSize(this.sizeHexagonOnBoard);
                     this.node.addChild(hexagon, 0);
                     //create shadow
-                    if(this.blockPrefab){
-                        hexagonCom.createShadowOn(this.blockPrefab);
+                    if(this.shadowPrefab){
+                        hexagonCom.createShadowOn(this.shadowPrefab);
                     }
                     return hexagon;     
                 } catch (error) {}
@@ -708,10 +714,10 @@ cc.Class({
 
     },
 
-    hideAllShadow(){
+    hideAllShadow(force){
         this.listHexagonsGroup.forEach(group =>{
             group.hexagons.forEach(hexagon =>{
-                hexagon.hideShadow();
+                hexagon.hideShadow(force);
             });
         });
     },
