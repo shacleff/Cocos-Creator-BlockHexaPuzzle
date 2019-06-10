@@ -35,7 +35,6 @@ cc.Class({
     preStart(){
         window.gamePlay.saveMgr.saveData(null, null, this.numberHint);
         this.countHintLabel.string = this.numberHint;
-        console.log("hint " + this.countHintNode);
     },
 
     update(dt){

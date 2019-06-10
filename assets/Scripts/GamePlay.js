@@ -87,7 +87,6 @@ cc.Class({
 
     // LIFE-CYCLE CALLBACKS:
     onLoad(){
-        cc.sys.localStorage.clear();
         window.gamePlay = this;
         this.actionHandler = this.node.getChildByName('ActionHandler').getComponent('ActionHandler');
         this.functionHandler = this.node.getChildByName('FunctionHandler').getComponent('FunctionHandler');

@@ -51,29 +51,49 @@ cc.Class({
         currentDifficult : 1,
         currentLevel : 1,
         represent : cc.Node,
-        secondsToIncreDifficult : 30,
+        timeMinToCompletedALevel : 30,
+        timeMinToReduceDifficultNextReset : 60,
+        timeConditionToIncreDifficult :{
+            default: [],
+            type: cc.Integer
+        },
+        rateChangeDifficult : 1,
+        nextLevelDifficultChange :1,
+
         difficults :{
             type: Difficult,
             default: []
         },
-        rateDifficulty : 0.5,
-        timeSpendToWithout : 60,
-        nextLevelDifficulty :1
     },
 
     preStart(){
         this.countTime = 0;
-        this.currentDifficult -= 2;
+        this.currentDifficult -= 1;
         this.currentLevel -= 2;
         this.save = false;
+        this.countIncreDiffi = -1;
     },
 
     nextLevel(){
-        if(this.countTime <= this.secondsToIncreDifficult * (this.currentDifficult+1) * this.rateDifficulty && this.currentDifficult < this.difficults.length - 1)
-            this.currentDifficult += this.nextLevelDifficulty;
-        else if((this.countTime > this.secondsToIncreDifficult * this.currentDifficult * this.rateDifficulty || window.gamePlay.functionHandler.isHint == true)&& this.currentDifficult > 0)
-            this.currentDifficult -= this.nextLevelDifficulty;
+        let numberOfDifficult = this.currentDifficult < 0 ? 1 : this.currentDifficult + 1;
+        if(window.gamePlay.functionHandler.isHint){  //reduce next difficult when use hint
+            this.currentDifficult = cc.misc.clampf(this.currentDifficult - ~~this.nextLevelDifficultChange, 0, this.difficults.length - 1);
+            this.countIncreDiffi = 0;
+        } else if(this.countTime > this.timeMinToCompletedALevel * numberOfDifficult * this.rateChangeDifficult){ //reduce next difficult
+            this.currentDifficult = cc.misc.clampf(this.currentDifficult - ~~this.nextLevelDifficultChange, 0, this.difficults.length - 1);
+            this.countIncreDiffi = 0;
+        } else if(this.countTime <= this.timeConditionToIncreDifficult[this.countIncreDiffi] * numberOfDifficult * this.rateChangeDifficult){ //incre difficult
+            this.countIncreDiffi++;            
+            if(this.countIncreDiffi == this.timeConditionToIncreDifficult.length){
+                this.currentDifficult = cc.misc.clampf(this.currentDifficult + ~~this.nextLevelDifficultChange, 0, this.difficults.length - 1);
+                this.countIncreDiffi = 0;
+                this.countIncreDiffi--;
+            }
+        }
+        if(this.countIncreDiffi < 0)this.countIncreDiffi = 0;
+
         window.gamePlay.functionHandler.isHint = false;
+        console.log("count Incre " + this.countIncreDiffi);
         console.log("difficult : " + (this.currentDifficult + 1) + " with at time : " + this.countTime);
         this.countTime = 0;
         this.save = false;
@@ -89,10 +109,12 @@ cc.Class({
     
     update(dt){
         this.countTime += dt;
-        if(this.countTime > this.timeSpendToWithout * this.currentDifficult && this.currentDifficult > 0 && window.gamePlay.result == "none" && this.save == false && this.currentDifficult < this.difficults.length - 1){
+        let numberOfDifficult = this.currentDifficult < 0 ? 1 : this.currentDifficult + 1;
+        if(this.countTime > this.timeMinToReduceDifficultNextReset * numberOfDifficult * this.rateChangeDifficult && !window.gamePlay.isWin && !this.save){
+            this.countIncreDiffi = 0;
             this.save = true;     
-            console.log("cur : " + this.currentDifficult);  
-            this.currentDifficult = cc.misc.clampf(this.currentDifficult - this.nextLevelDifficulty, 0, this.difficults.length - 1)
+            this.currentDifficult = cc.misc.clampf(this.currentDifficult - ~~this.nextLevelDifficultChange, 0, this.difficults.length - 1)
+            console.log("save reduce " + (this.currentDifficult + 1));
             window.gamePlay.saveMgr.saveData(null, this.currentDifficult + 1, null);
         }
     }
