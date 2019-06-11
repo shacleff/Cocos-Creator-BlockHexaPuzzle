@@ -1439,7 +1439,11 @@
     },
     "_enabled": true,
     "pieceRects": [],
-    "margin": 50,
+    "margin": {
+      "__type__": "cc.Vec2",
+      "x": 50,
+      "y": 30
+    },
     "ratioMarginBox": {
       "__type__": "cc.Size",
       "width": 1.5,

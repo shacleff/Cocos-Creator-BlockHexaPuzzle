@@ -27,7 +27,7 @@ cc.Class({
             default : [],   //array PieceRect object
             visible : false,
         },
-        margin : 10,
+        margin : cc.v2(0,0),
         ratioMarginBox : cc.size(1,1),
 
         testPrefab: {
@@ -37,8 +37,8 @@ cc.Class({
     },
 
     onLoad () {
-        this.rangeHorizontal = this.node.width / 2 - this.margin;
-        this.rangeVertical = this.node.height / 2 - this.margin;
+        this.rangeHorizontal = this.node.width / 2 - this.margin.x;
+        this.rangeVertical = this.node.height / 2 - this.margin.y;
     },
 
     clear(){
@@ -116,7 +116,7 @@ cc.Class({
         for(let pieceRect of this.pieceRects){
             if(pieceRect.piece.blocks.length > 0){
                 let rect = pieceRect.rect;
-                if(posTemp.x + rect.width > this.rangeHorizontal){
+                if(posTemp.x + rect.width > this.rangeHorizontal + this.margin.x){
                     posTemp.x = posStart.x;
                     posTemp.y = -this.rangeVertical;
                     posTemp = this.convertFromBarToCanvasPos(posTemp);
