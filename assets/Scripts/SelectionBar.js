@@ -83,7 +83,7 @@ cc.Class({
         //shuffle random array
         for (let i = this.pieceRects.length - 1; i > 0; i--) {
             const j = ~~(Math.random() * (i + 1));
-            [this.pieceRects[i], this.pieceRects[j]] = [this.pieceRects[j], this.pieceRects[i]];    //swap
+            [this.pieceRects[i], this.pieceRects[j]] = [this.pieceRects[j], this.pieceRects[i]];
         }
 
         //set anchor point for each piece
@@ -94,7 +94,7 @@ cc.Class({
                 let newAnchorPos = cc.v2(rect.x + rect.width / 2, rect.y + rect.height / 2);
                 let offset = newAnchorPos.sub(oldAnchorPos);
                 for(let block of pieceRect.piece.blocks)block.position = block.position.sub(offset);
-
+        
                 let side = rect.width > rect.height ? rect.width : rect.height;
                 pieceRect.horizontal.min = -side / 2;
                 pieceRect.horizontal.max = side / 2;
