@@ -83,7 +83,7 @@ cc.Class({
             piece.revertToPieces();
         }
        
-        //window.gamePlay.reset();
+        // window.gamePlay.reset();
     },
 
     hint(){

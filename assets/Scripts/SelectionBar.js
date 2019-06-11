@@ -85,6 +85,29 @@ cc.Class({
             const j = ~~(Math.random() * (i + 1));
             [this.pieceRects[i], this.pieceRects[j]] = [this.pieceRects[j], this.pieceRects[i]];    //swap
         }
+
+        //set anchor point for each piece
+        for(let pieceRect of this.pieceRects){
+            if(pieceRect.piece.canRotate){
+                let oldAnchorPos = pieceRect.piece.node.position;
+                let rect = pieceRect.rect;
+                let newAnchorPos = cc.v2(rect.x + rect.width / 2, rect.y + rect.height / 2);
+                let offset = newAnchorPos.sub(oldAnchorPos);
+                for(let block of pieceRect.piece.blocks)block.position = block.position.sub(offset);
+
+                let side = rect.width > rect.height ? rect.width : rect.height;
+                pieceRect.horizontal.min = -side / 2;
+                pieceRect.horizontal.max = side / 2;
+                pieceRect.vertical.min = -side / 2;
+                pieceRect.vertical.max = side / 2;
+
+                pieceRect.rect.x = cc.v2(newAnchorPos.x - side / 2);
+                pieceRect.rect.y = cc.v2(newAnchorPos.y - side / 2);
+                rect.width = side
+                rect.height = side;
+                // pieceRect.piece.node.runAction(cc.repeatForever(cc.rotateBy(1, 360)));
+            }
+        }
         
         let row = 1;
         let posStart = cc.v2(-this.rangeHorizontal, this.rangeVertical);
@@ -115,6 +138,7 @@ cc.Class({
             }
         }    
 
+        //tutorial for rotate 
         for(let pieceRect of this.pieceRects)
             if(pieceRect.piece && pieceRect.piece.canRotate){
                 window.gamePlay.tutorial.showRotatePieceTutorial(pieceRect.piece.node);

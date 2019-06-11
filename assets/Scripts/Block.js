@@ -31,7 +31,7 @@ cc.Class({
     touchStart(event){
         if(this.piece){
             let time = Date.now();
-            if(time - this.countTime <= 250 && this.piece.node.scale != 1){
+            if(time - this.countTime <= 200 && this.piece.node.scale != 1){
                 window.gamePlay.actionHandler.rotatePiece(this.piece);
                 window.gamePlay.tutorial.hideRotatePieceTutorial();
             }

@@ -63,6 +63,13 @@ cc.Class({
             window.gamePlay.releasePieceFromHexagon(this);   
             actionHandler.scalePiece(this, actionHandler.selectionScale);
         }
+
+            // calculate coord 
+            let sub = cc.v2(0,0).sub(this.blocks[0].position);
+            if(this.node.angle >= 240)sub = cc.v2(sub).rotate(this.node.angle - 60);
+            else if(this.node.angle >= 120) sub = cc.v2(sub).rotate(this.node.angle - 30);
+            offset = offset.add(sub);
+        
         if(immediate){
             this.node.position = offset;
             this.node.zIndex = 0;
