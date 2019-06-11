@@ -80,10 +80,10 @@ cc.Class({
         this.history.length = 0;
         for(let piece of listHexagon.pieces){
             piece.positionInGameBoard.x = 9999;
-            piece.revertToPieces();
+            piece.revertToPieces(0.1, false);
         }
        
-        window.gamePlay.reset();
+        // window.gamePlay.reset();
     },
 
     hint(){

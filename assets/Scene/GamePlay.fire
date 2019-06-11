@@ -275,7 +275,7 @@
       }
     ],
     "_prefab": null,
-    "_opacity": 10,
+    "_opacity": 255,
     "_color": {
       "__type__": "cc.Color",
       "r": 255,
@@ -405,7 +405,7 @@
       }
     ],
     "_prefab": null,
-    "_opacity": 10,
+    "_opacity": 255,
     "_color": {
       "__type__": "cc.Color",
       "r": 255,
@@ -2038,7 +2038,7 @@
       "__id__": 46
     },
     "_enabled": true,
-    "currentDifficult": 5,
+    "currentDifficult": 1,
     "currentLevel": 1,
     "represent": {
       "__id__": 41
