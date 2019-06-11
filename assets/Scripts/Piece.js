@@ -58,16 +58,16 @@ cc.Class({
             if(funcHandler && !immediate){
                 funcHandler.getComponent('FunctionHandler').saveHistory(this, offset);
             }
+            let sub = cc.v2(0,0).sub(this.blocks[0].position);
+            sub = cc.v2(sub).rotate(cc.misc.degreesToRadians(this.node.angle));
+            offset = offset.add(sub);
         }else{
             offset = this.positionPiecesArea;
             window.gamePlay.releasePieceFromHexagon(this);   
             actionHandler.scalePiece(this, actionHandler.selectionScale);
         }
 
-            // calculate coord 
-        let sub = cc.v2(0,0).sub(this.blocks[0].position);
-        sub = cc.v2(sub).rotate(cc.misc.degreesToRadians(this.node.angle));
-        offset = offset.add(sub);
+        // calculate coord 
         
         if(immediate){
             this.node.position = offset;

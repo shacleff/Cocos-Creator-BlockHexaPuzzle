@@ -217,14 +217,14 @@ cc.Class({
                     if(pieces.length == 0)break;
                     let randomIndex = ~~(Math.random() * pieces.length);
                     let piece = pieces[randomIndex];
-                    piece.canRotate = true;
-                    //set rotate
-                    let randomRo = ~~(Math.random() * 2);
-                    for(let i = 0; i < randomRo; i++)this.actionHandler.rotatePiece(piece);
-
-                    this.actionHandler.showCanRotate(piece);
+                    if(piece.blocks.length > 1){
+                        piece.canRotate = true;
+                        let randomRo = ~~(Math.random() * 2);
+                        for(let i = 0; i < randomRo; i++)this.actionHandler.rotatePiece(piece);
+                        this.actionHandler.showCanRotate(piece);
+                        number--;
+                    }
                     pieces.splice(randomIndex);
-                    number--;
                 }
             }
         }

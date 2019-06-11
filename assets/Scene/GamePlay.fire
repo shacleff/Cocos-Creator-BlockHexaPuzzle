@@ -1439,10 +1439,10 @@
     },
     "_enabled": true,
     "pieceRects": [],
-    "margin": 30,
+    "margin": 50,
     "ratioMarginBox": {
       "__type__": "cc.Size",
-      "width": 2,
+      "width": 1.5,
       "height": 1
     },
     "testPrefab": {
@@ -2034,7 +2034,7 @@
       "__id__": 46
     },
     "_enabled": true,
-    "currentDifficult": 2,
+    "currentDifficult": 5,
     "currentLevel": 1,
     "represent": {
       "__id__": 41

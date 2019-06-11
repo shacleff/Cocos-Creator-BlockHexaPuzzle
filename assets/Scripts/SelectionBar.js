@@ -101,11 +101,11 @@ cc.Class({
                 pieceRect.vertical.min = -side / 2;
                 pieceRect.vertical.max = side / 2;
 
-                pieceRect.rect.x = cc.v2(newAnchorPos.x - side / 2);
-                pieceRect.rect.y = cc.v2(newAnchorPos.y - side / 2);
-                rect.width = side
-                rect.height = side;
-                // pieceRect.piece.node.runAction(cc.repeatForever(cc.rotateBy(1, 360)));
+                offset = cc.v2(Math.abs(offset.x), Math.abs(offset.y));
+                pieceRect.rect.x = cc.v2(newAnchorPos.x - side / 2 - offset.x / 2);
+                pieceRect.rect.y = cc.v2(newAnchorPos.y - side / 2 - offset.y / 2);
+                rect.width = side + offset.x / 2;
+                rect.height = side + offset.y / 2;
             }
         }
         
