@@ -30,11 +30,6 @@ cc.Class({
 
     touchStart(event){
         if(this.piece){
-            let time = Date.now();
-            if(time - this.countTime <= 200 && this.piece.node.scale != 1){
-                window.gamePlay.actionHandler.rotatePiece(this.piece);
-                window.gamePlay.tutorial.hideRotatePieceTutorial();
-            }
             window.gamePlay.actionHandler.stopShowCanRotate(this.piece);
             this.countTime = Date.now();
         }
@@ -60,6 +55,12 @@ cc.Class({
             let hexagonsAvaiable = window.gamePlay.isPieceFit(this.piece);
             if(hexagonsAvaiable.length == this.piece.blocks.length){
                 window.gamePlay.setToNewHexagons(this.piece, hexagonsAvaiable);
+            }else{
+                let time = Date.now();
+                if(time - this.countTime <= window.gamePlay.actionHandler.timeToActiveTapRotate * 1000){
+                    window.gamePlay.actionHandler.rotatePiece(this.piece);
+                    window.gamePlay.tutorial.hideRotatePieceTutorial();
+                }
             }
             this.piece.revertToPieces(this.durationMove);
             window.gamePlay.checkWin();

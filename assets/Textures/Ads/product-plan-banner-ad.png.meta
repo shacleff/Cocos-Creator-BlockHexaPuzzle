@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.0",
+  "uuid": "e0ea34c3-ddc2-4399-985a-ef10c132c3a7",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "product-plan-banner-ad": {
+      "ver": "1.0.4",
+      "uuid": "48f8e329-0e87-4e8a-b614-db282e8ec4bb",
+      "rawTextureUuid": "e0ea34c3-ddc2-4399-985a-ef10c132c3a7",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 648,
+      "height": 167,
+      "rawWidth": 648,
+      "rawHeight": 167,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

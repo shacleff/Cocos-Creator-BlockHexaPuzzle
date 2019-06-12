@@ -13,7 +13,8 @@ export var ActionHandler = cc.Class({
 
     properties: {
         selectionScale : 0.5,
-        angleRotate : 120
+        angleRotate : 120,
+        timeToActiveTapRotate : 0.5,    //second unit
     },
     // LIFE-CYCLE CALLBACKS:
 

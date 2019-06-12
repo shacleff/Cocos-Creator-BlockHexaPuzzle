@@ -22,6 +22,7 @@ cc.Class({
         hintRate : 30,
         numberHint: 1,
         countHintNode: cc.Node,
+        adsHintNode: cc.Node,
         autoes: [],
         isAutoPlay: false,
         isHint :false,
@@ -30,6 +31,9 @@ cc.Class({
     onLoad(){
         this.countHintLabel = this.countHintNode.getComponent(cc.Label);
         this.countHintLabel.string = this.numberHint;
+        if(this.numberHint <= 0)this.adsHintNode.active = true;
+        else this.adsHintNode.active = false;
+        this.countHintNode.active = !this.adsHintNode.active;
     },
 
     preStart(){
@@ -57,10 +61,6 @@ cc.Class({
         }
     },
 
-    nextLevel(){
-        window.gamePlay.reset();
-    },
-
     undo(){
         if(this.history.length > 0 && !window.gamePlay.isWin){
             let lastest = this.history[this.history.length - 1];
@@ -83,7 +83,7 @@ cc.Class({
             piece.revertToPieces(0.1, false);
         }
        
-        // window.gamePlay.reset();
+        window.gamePlay.reset();
     },
 
     hint(){
@@ -98,6 +98,7 @@ cc.Class({
             [this.hints[i], this.hints[j]] = [this.hints[j], this.hints[i]];
         }
         while(rate > 0){
+            if(this.hints.length == 0)break;
             let frame = this.hints[0].frame;
             for(let i = 0; i < this.hints.length;){
                 let hint = this.hints[i];
@@ -113,6 +114,10 @@ cc.Class({
         this.numberHint--;
         //set count
         this.countHintLabel.string = this.numberHint;
+        if(this.numberHint <= 0) this.adsHintNode.active = true;
+        else this.adsHintNode.active = false;
+        this.countHintNode.active = !this.adsHintNode.active;
+
         window.gamePlay.saveMgr.saveData(null, null, this.numberHint);
     },
 
