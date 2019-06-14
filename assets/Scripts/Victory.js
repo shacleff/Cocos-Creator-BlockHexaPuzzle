@@ -16,13 +16,18 @@ cc.Class({
         congratulationTexts:{
             default: [],
             type: cc.String
-        }
+        },
+    },
+
+    onLoad(){
+        this.node.getChildByName('BG').on(cc.Node.EventType.TOUCH_START, ()=>{}, this);
+        this.coinsAdded = 0;
     },
 
     onEnable(){
         let text = "FANTASTIC!";
         if(this.congratulationTexts.length > 0)text = this.congratulationTexts[~~(Math.random() * this.congratulationTexts.length)];
-        this.congratulationLabeL.getComponent(cc.Label).string = text;
+        this.congratulationLabeL.getComponent(cc.Label).string = text + " ";
     },
 
     next(){

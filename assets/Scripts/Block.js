@@ -55,7 +55,8 @@ cc.Class({
             let hexagonsAvaiable = window.gamePlay.isPieceFit(this.piece);
             if(hexagonsAvaiable.length == this.piece.blocks.length){
                 window.gamePlay.setToNewHexagons(this.piece, hexagonsAvaiable);
-            }else{
+            }
+            if(this.piece.positionInGameBoard.x == 9999){
                 let time = Date.now();
                 if(time - this.countTime <= window.gamePlay.actionHandler.timeToActiveTapRotate * 1000){
                     window.gamePlay.actionHandler.rotatePiece(this.piece);

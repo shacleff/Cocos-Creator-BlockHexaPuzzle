@@ -15,6 +15,8 @@ export var ActionHandler = cc.Class({
         selectionScale : 0.5,
         angleRotate : 120,
         timeToActiveTapRotate : 0.5,    //second unit
+        showRotateAngleChange : 30,
+        showRotateRepeattimes : 2
     },
     // LIFE-CYCLE CALLBACKS:
 
@@ -49,11 +51,15 @@ export var ActionHandler = cc.Class({
     showCanRotate(piece){
         if(piece.canRotate){
             piece.node.runAction(cc.repeatForever(cc.sequence(
-                cc.rotateBy(0.2, 30),
-                cc.rotateBy(0.2, -30),
+                cc.repeat(cc.sequence(
+                    cc.rotateBy(0.2, this.showRotateAngleChange),
+                    cc.rotateBy(0.2, -this.showRotateAngleChange)
+                ), this.showRotateRepeattimes),
                 cc.delayTime(2),
-                cc.rotateBy(0.2, -30),
-                cc.rotateBy(0.2, 30),
+                cc.repeat(cc.sequence(
+                    cc.rotateBy(0.2, -this.showRotateAngleChange),
+                    cc.rotateBy(0.2, this.showRotateAngleChange)
+                ), this.showRotateRepeattimes),
                 cc.delayTime(2),
             )));
         }

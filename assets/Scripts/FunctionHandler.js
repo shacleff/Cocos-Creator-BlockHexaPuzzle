@@ -26,6 +26,22 @@ cc.Class({
         autoes: [],
         isAutoPlay: false,
         isHint :false,
+        numberHintAddedAfterAds: 3,
+        timeSuggestUseHint: 10,
+        suggestHintJumpHeight: 50,
+        hintBtn:{
+            default: null,
+            type: cc.Node
+        },
+        hintAds:{
+            default: null,
+            type: cc.Prefab
+        },
+        quitPopup:{
+            default: null,
+            type: cc.Prefab
+        },
+        
     },
 
     onLoad(){
@@ -34,14 +50,24 @@ cc.Class({
         if(this.numberHint <= 0)this.adsHintNode.active = true;
         else this.adsHintNode.active = false;
         this.countHintNode.active = !this.adsHintNode.active;
+        this.isPaused = false;
+        this.countSuggestHint = Date.now();
     },
 
     preStart(){
         window.gamePlay.saveMgr.saveData(null, null, this.numberHint);
         this.countHintLabel.string = this.numberHint;
+        
+        if(this.hintBtn){
+            this.originHintBtnPos = this.hintBtn.position;
+            this.hintBtn.runAction(cc.repeatForever(cc.sequence(cc.jumpBy(0.4, cc.v2(0,0), this.suggestHintJumpHeight, 1), cc.delayTime(0.5))));
+        } 
+        this.hintBtn.pauseAllActions();
     },
 
     update(dt){
+        if(this.isPaused)return;
+
         if(this.isAutoPlay){
             let time = 0.5;
             let incre = 0.5;
@@ -58,6 +84,12 @@ cc.Class({
                     time += incre;
                 }
             }
+        }
+
+        //suggest hint
+        let time = Date.now();
+        if(time - this.countSuggestHint >= this.timeSuggestUseHint * 1000){
+            this.suggestHint();
         }
     },
 
@@ -82,12 +114,24 @@ cc.Class({
             piece.positionInGameBoard.x = 9999;
             piece.revertToPieces(0.1, false);
         }
-       
-        window.gamePlay.reset();
+        this.offSuggestHint();
+        // window.gamePlay.reset();
     },
 
     hint(){
-        if(window.gamePlay.isWin || this.numberHint <= 0 || this.hints.length <= 0)return;
+        if(window.gamePlay.isWin)return;
+
+        this.offSuggestHint();
+        if(this.numberHint <= 0){
+            this.ads = cc.instantiate(this.hintAds);
+            this.ads.getComponent('AdsVideo').skipCallBack = (()=>{
+                window.gamePlay.functionHandler.numberHint += this.numberHintAddedAfterAds;
+                window.gamePlay.functionHandler.showHintNumber();
+            });
+            window.gamePlay.node.addChild(this.ads);
+            return;
+        }
+        if(this.hints.length <= 0)return;
 
         window.gamePlay.hideAllShadow(false);
         let numberPieces = 0;
@@ -113,12 +157,35 @@ cc.Class({
         this.isHint = true;
         this.numberHint--;
         //set count
+        this.showHintNumber();
+    },
+
+    suggestHint(){
+        this.hintBtn.resumeAllActions();
+        this.countSuggestHint = Date.now();
+    },
+
+    offSuggestHint(){
+        if(this.hintBtn){
+            this.hintBtn.pauseAllActions();
+            this.hintBtn.position = this.originHintBtnPos;
+            this.countSuggestHint = Date.now();
+        }  
+    },
+
+    showHintNumber(){
         this.countHintLabel.string = this.numberHint;
         if(this.numberHint <= 0) this.adsHintNode.active = true;
         else this.adsHintNode.active = false;
         this.countHintNode.active = !this.adsHintNode.active;
-
         window.gamePlay.saveMgr.saveData(null, null, this.numberHint);
+    },
+
+    showQuitPopup(){
+        if(window.gamePlay.isWin)return;
+
+        let quit = cc.instantiate(this.quitPopup);
+        window.gamePlay.node.addChild(quit, 10);
     },
 
     autoPlay(){
@@ -136,6 +203,5 @@ cc.Class({
     saveHistory(piece, position){
         this.history.push(new History(piece, position));
     },
-
     
 });

@@ -83,6 +83,7 @@ cc.Class({
         listHexagonsGroup : [], 
         resultNode : cc.Node,
         levelUnlockLabel: cc.Node,
+        levelEffectLabel: cc.Node,
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -99,6 +100,7 @@ cc.Class({
         this.listHexagonsGroup = [];    //HexagonsGroup array
         this.listHoles = [];
         this.percentRotatablePiece = [];
+        this.coin = this.node.getChildByName('Coin').getComponent('Coin');
     },
 
     start () {
@@ -194,12 +196,14 @@ cc.Class({
         if(this.isWin){
             //do something
             console.log("WIN");
+            if(this.coin)this.coin.addCoin(100);
             this.nextLevel();
             this.saveMgr.saveData(this.levelMgr.currentLevel + 1, this.levelMgr.currentDifficult + 1, null);
             this.node.runAction(cc.sequence(cc.delayTime(0.5), cc.callFunc(()=>{
                 this.clearBoard();
                 this.resultNode.active = true;
-                this.levelUnlockLabel.getComponent(cc.Label).string = "Level " + (this.levelMgr.currentLevel + 1);
+                this.levelUnlockLabel.getComponent(cc.Label).string = "Level " + (this.levelMgr.currentLevel + 1) + " ";
+                this.levelEffectLabel.getComponent(cc.Label).string = this.levelMgr.currentLevel + 1 + " ";
             }, this)));
         }
     },
@@ -269,23 +273,19 @@ cc.Class({
             let numberHexagonsTemp = this.numberHexagons;
             let maxBlocks = this.numberBlockEachPieces.max;
             let minBlocks = this.numberBlockEachPieces.min;
-            for(let i = 0; i < numberPieces - 1; i++){
-                let numberBlocks = minBlocks;
-                if(numberHexagonsTemp > maxBlocks){
-                    let blocksForOthers = (numberPieces - i - 1) * minBlocks;
-                    let subAvailable = numberHexagonsTemp - maxBlocks - blocksForOthers;
-                    if(subAvailable < 0){
-                        numberBlocks = this.getRandom(minBlocks, maxBlocks + subAvailable);
-                    }else{
-                        numberBlocks = this.getRandom(minBlocks, maxBlocks);
-                    }
-                }else{
-                    numberBlocks = this.getRandom(minBlocks, numberHexagonsTemp);
-                }
-                arrayPieceCreations[i].numberBlocks = numberBlocks;
-                numberHexagonsTemp -= numberBlocks;
+
+            if(this.numberHexagons % numberPieces == 0){
+                let numberEachPiece = this.numberHexagons / numberPieces;
+                for(let c of arrayPieceCreations)c.numberBlocks = numberEachPiece;
+            }else{
+                let divNumber = this.numberHexagons - (this.numberHexagons % numberPieces);
+                let numberEachPiece = divNumber / numberPieces;
+                for(let i = 0; i < arrayPieceCreations.length - 1; i++)arrayPieceCreations[i].numberBlocks = numberEachPiece;
+                arrayPieceCreations[arrayPieceCreations.length - 1].numberBlocks = this.numberHexagons % numberPieces;
             }
-            arrayPieceCreations[numberPieces - 1].numberBlocks = numberHexagonsTemp;
+
+
+            //get random
         }
         for(let piece of arrayPieceCreations)cc.log("Block each Piece : " + piece.numberBlocks);
         //get grid available to put block : out put to gridAvaiable
@@ -584,7 +584,7 @@ cc.Class({
         console.log(`Screen : ${this.node.width} - ${this.node.height}`);
         let measureScreenSide = this.node.width < this.node.height ? this.node.width : this.node.height;
         let measurePlaySide = (this.realSizePlay.width > this.realSizePlay.height ? this.realSizePlay.width : this.realSizePlay.height) + 1;
-        this.sizeHexagonOnBoard = cc.size(measureScreenSide / (measurePlaySide + 1), measureScreenSide / (measurePlaySide + 1));
+        this.sizeHexagonOnBoard = cc.size(measureScreenSide / (measurePlaySide - 0.4), measureScreenSide / (measurePlaySide - 0.4));
 
         //calculate realsize each block
         let obj = cc.instantiate(this.blockPrefab);

@@ -102,7 +102,7 @@ cc.Class({
         result.difficult = this.difficults[this.currentDifficult];
         if(this.represent){
             let label = this.represent.getChildByName('Number').getComponent(cc.Label);
-            if(label)label.string = (this.currentLevel + 1);
+            if(label)label.string = (this.currentLevel + 1 + " ");
         }
         return result;
     },
