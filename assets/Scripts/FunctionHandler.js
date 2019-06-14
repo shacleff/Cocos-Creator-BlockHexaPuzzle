@@ -29,6 +29,7 @@ cc.Class({
         numberHintAddedAfterAds: 3,
         timeSuggestUseHint: 10,
         suggestHintJumpHeight: 50,
+        timeSuggest : 1,
         hintBtn:{
             default: null,
             type: cc.Node
@@ -57,12 +58,7 @@ cc.Class({
     preStart(){
         window.gamePlay.saveMgr.saveData(null, null, this.numberHint);
         this.countHintLabel.string = this.numberHint;
-        
-        if(this.hintBtn){
-            this.originHintBtnPos = this.hintBtn.position;
-            this.hintBtn.runAction(cc.repeatForever(cc.sequence(cc.jumpBy(0.4, cc.v2(0,0), this.suggestHintJumpHeight, 1), cc.delayTime(0.5))));
-        } 
-        this.hintBtn.pauseAllActions();
+        this.originHintBtnPos = this.hintBtn.position;
     },
 
     update(dt){
@@ -88,7 +84,7 @@ cc.Class({
 
         //suggest hint
         let time = Date.now();
-        if(time - this.countSuggestHint >= this.timeSuggestUseHint * 1000){
+        if(time - this.countSuggestHint >= this.timeSuggestUseHint * 1000 && this.hintBtn.getNumberOfRunningActions() == 0){
             this.suggestHint();
         }
     },
@@ -161,14 +157,22 @@ cc.Class({
     },
 
     suggestHint(){
-        this.hintBtn.resumeAllActions();
-        this.countSuggestHint = Date.now();
+        if(this.hintBtn){
+            this.hintBtn.runAction(cc.sequence(cc.jumpBy(0.4, cc.v2(0,0), this.suggestHintJumpHeight, 1), cc.delayTime(0.5)));
+            if(this.timeSuggest > 0){
+                this.hintBtn.runAction(cc.sequence(
+                    cc.jumpBy(this.timeSuggest / 2, cc.v2(0,0), this.suggestHintJumpHeight, 2), 
+                    cc.delayTime(this.timeSuggest / 2), 
+                    cc.callFunc(()=>{this.countSuggestHint = Date.now();}, this)));
+            }
+            else
+                this.hintBtn.runAction(cc.sequence(cc.jumpBy(0.4, cc.v2(0,0), this.suggestHintJumpHeight, 1), cc.delayTime(0.5)));
+        } 
     },
 
     offSuggestHint(){
         if(this.hintBtn){
-            this.hintBtn.pauseAllActions();
-            this.hintBtn.position = this.originHintBtnPos;
+            // this.hintBtn.position = this.originHintBtnPos;
             this.countSuggestHint = Date.now();
         }  
     },

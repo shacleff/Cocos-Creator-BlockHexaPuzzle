@@ -173,6 +173,7 @@ cc.Class({
 
     reset(){
         if(!this.isGenerating){
+            this.functionHandler.offSuggestHint();
             this.isGenerating = true;
             this.clearBoard();
             this.node.getChildByName('SelectionBar').getComponent('SelectionBar').clear();
@@ -686,6 +687,7 @@ cc.Class({
             });
         }
 
+        this.functionHandler.offSuggestHint();
     },
 
     hideAllShadow(force){
