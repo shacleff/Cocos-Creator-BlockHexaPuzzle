@@ -169,7 +169,8 @@ cc.Class({
             }
             this.listHexagonsGroup.length = 0;
         }
-        this.tutorial.hideRotatePieceTutorial();
+
+        this.tutorial.resetRotatePieceTutorial();
     },
 
     reset(){
@@ -218,12 +219,42 @@ cc.Class({
             }        
             
             if(number > 0){
+                let isRotateSame = piece =>{    //we have 3 case: triangle 3 blocks and triangle 4 blocks, hexagon 7 blocks
+                    //case 1 
+                    let pointsArray = array =>{
+                        let length = Math.floor(array[array.length - 1].sub(array[0]).mag());
+                        for(let i = 0; i < array.length - 1; i++){
+                            let compare = Math.floor(array[i].sub(array[i+1]).mag());
+                            if(compare != length)return false;
+                        }
+                        return true;
+                    }
+                    if(piece.blocks.length == 3){
+                        return pointsArray([piece.blocks[0].position, piece.blocks[1].position, piece.blocks[2].position]);
+                    }else if(piece.blocks.length == 4){
+                        let center = piece.blocks.findIndex(o =>{
+                            let compare = Math.floor(o.position.sub(piece.blocks[0].position).mag());
+                            if(compare == 0)compare = Math.floor(o.position.sub(piece.blocks[1].position).mag());
+                            for(let b of piece.blocks){
+                                let length = Math.floor(o.position.sub(b.position).mag());
+                                if(length != 0 && compare != length)return false;
+                            }
+                            return true;
+                        }, this);
+                        if(center != -1){
+                            return true;
+                        }
+                    }else if(piece.blocks.length == 7){
+
+                    }
+                    return false;
+                };
                 let pieces = Array.from(this.listHexagonsGroup[0].pieces);
                 while(number > 0 && pieces.length > 0){
                     if(pieces.length == 0)break;
                     let randomIndex = ~~(Math.random() * pieces.length);
                     let piece = pieces[randomIndex];
-                    if(piece.blocks.length > 1 && piece.blocks.length < this.numberBlockEachPieces.max){
+                    if(piece.blocks.length > 1 && piece.blocks.length < this.numberBlockEachPieces.max && !isRotateSame(piece)){
                         piece.canRotate = true;
                         let randomRo = ~~(Math.random() * 2);
                         for(let i = 0; i < randomRo; i++)this.actionHandler.rotatePiece(piece);

@@ -111,7 +111,7 @@ cc.Class({
             piece.revertToPieces(0.1, false);
         }
         this.offSuggestHint();
-        // window.gamePlay.reset();
+        window.gamePlay.reset();
     },
 
     hint(){

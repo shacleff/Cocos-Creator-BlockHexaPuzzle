@@ -17,6 +17,11 @@ cc.Class({
         this.loadSave();
     },
 
+    resetRotatePieceTutorial(){
+        this.hideRotatePieceTutorial();
+        // this.rotateTutorialShowed = false;
+    },  
+
     showRotatePieceTutorial(pieceNode){
         if(this.rotateTutorialShowed || this.rotateTutorial)return;
         this.uuidPieceTutorial = pieceNode.uuid;
