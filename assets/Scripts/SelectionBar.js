@@ -141,6 +141,7 @@ cc.Class({
         //tutorial for rotate 
         for(let pieceRect of this.pieceRects)
             if(pieceRect.piece && pieceRect.piece.canRotate){
+                cc.log("uddi : " + pieceRect.piece.node.uuid);
                 window.gamePlay.tutorial.showRotatePieceTutorial(pieceRect.piece.node);
                 break;
             }

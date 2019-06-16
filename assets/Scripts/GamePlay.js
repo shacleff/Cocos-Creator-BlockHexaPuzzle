@@ -169,6 +169,7 @@ cc.Class({
             }
             this.listHexagonsGroup.length = 0;
         }
+        this.tutorial.hideRotatePieceTutorial();
     },
 
     reset(){

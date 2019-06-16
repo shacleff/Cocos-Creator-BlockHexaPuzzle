@@ -31,6 +31,10 @@ cc.Class({
     touchStart(event){
         if(this.piece){
             window.gamePlay.actionHandler.stopShowCanRotate(this.piece);
+            let tutorial = window.gamePlay.tutorial;
+            if(tutorial && this.piece.node.uuid == tutorial.uuidPieceTutorial){
+                tutorial.hideRotatePieceTutorial();
+            }
             this.countTime = Date.now();
         }
     },

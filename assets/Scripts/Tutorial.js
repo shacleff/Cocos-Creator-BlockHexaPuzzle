@@ -12,12 +12,14 @@ cc.Class({
 
     load(){
         this.rotateTutorial = null;
+        this.uuidPieceTutorial = 0;
         this.rotateTutorialShowed = false;
         this.loadSave();
     },
 
     showRotatePieceTutorial(pieceNode){
         if(this.rotateTutorialShowed || this.rotateTutorial)return;
+        this.uuidPieceTutorial = pieceNode.uuid;
         this.rotateTutorial = cc.instantiate(this.tutorialPrefab);
         this.rotateTutorial.setPosition(pieceNode.position);
         window.gamePlay.node.addChild( this.rotateTutorial, 30);
