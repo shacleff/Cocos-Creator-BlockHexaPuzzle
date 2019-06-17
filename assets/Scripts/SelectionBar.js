@@ -139,21 +139,17 @@ cc.Class({
             }
         }   
         if(row == 1){
-            let endHozi = posTemp.x - sizeBlock.width;
-            let divForPieces = (this.rangeHorizontal - endHozi) / this.pieceRects.length;
-            for(let i in this.pieceRects){
-                let pieceRect = this.pieceRects[i];
-                let newPos = cc.v2(pieceRect.piece.node.position.x, this.node.position.y);
-                if(i > 0){
-                    newPos.x += i * divForPieces;
-                }
-                pieceRect.piece.positionPiecesArea = newPos;
-                pieceRect.piece.revertToPieces(0, true);
-                pieceRect.rect.x = newPos.x + pieceRect.horizontal.min;
-                pieceRect.rect.y = newPos.y + pieceRect.vertical.min;
-            }
+            let lastHozi = posTemp.x - sizeBlock.width * this.ratioMarginBox.width;
+            this.orderPieceInRow(this.pieceRects, 0, lastHozi);
         }else if(row == 2){
-            let pieceEachRow = this.pieceRects.length / 2;
+            let inRow1 = this.pieceRects.length / 2;
+            let inRow2 = this.pieceRects.length - inRow1;
+            let listRow1 = [], listRow2 = [];
+            for(let i = 0; i < inRow1; ++i)listRow1.push(this.pieceRects[i]);
+            for(let i = inRow1; i < inRow2; ++i)listRow2.push(this.pieceRects[i]);
+            let lastHozi = posTemp.x - sizeBlock.width * this.ratioMarginBox.width;
+            this.orderPieceInRow(listRow1, 1, lastHozi);
+            this.orderPieceInRow(listRow2, -1, lastHozi);
         } 
 
         //tutorial for rotate 
@@ -176,6 +172,38 @@ cc.Class({
                 test.stroke();    
             }
         }
+    },
+
+    orderPieceInRow(arrayPiece, anchorY, lastHozi){
+        let divForPieces = (this.rangeHorizontal - lastHozi) / this.pieceRects.length;
+        for(let i in arrayPiece){
+            let pieceRect = arrayPiece[i];
+            let newPos = this.getPositionByAnchorVertical(anchorY, pieceRect);
+            if(i > 0) newPos.x += i * divForPieces;
+            pieceRect.piece.positionPiecesArea = newPos;
+            pieceRect.piece.revertToPieces(0, true);
+            pieceRect.rect.x = newPos.x + pieceRect.horizontal.min;
+            pieceRect.rect.y = newPos.y + pieceRect.vertical.min;
+        }            
+    },
+
+    getPositionByAnchorVertical(anchor, pieceRect){
+        let piecePosition = pieceRect.piece.node.position;
+        switch(anchor){
+            case 0:
+                piecePosition = cc.v2(piecePosition.x, this.node.position.y);
+                break;
+            case 1:
+                piecePosition.y = this.node.position.y + this.rangeVertical - pieceRect.vertical.max - this.margin.y;
+                break;
+            case -1:
+                piecePosition.y = this.node.position.y - this.rangeVertical - pieceRect.vertical.min + this.margin.y;
+                break;
+            default:
+                break;;
+        }
+
+        return piecePosition;
     },
 
     convertFromBarToCanvasPos(position){

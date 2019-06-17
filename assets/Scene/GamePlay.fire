@@ -2170,7 +2170,7 @@
       "__id__": 2
     },
     "_children": [],
-    "_active": false,
+    "_active": true,
     "_level": 2,
     "_components": [
       {
@@ -2793,7 +2793,7 @@
       "__id__": 57
     },
     "_enabled": true,
-    "currentDifficult": 3,
+    "currentDifficult": 6,
     "currentLevel": 1,
     "represent": {
       "__id__": 52

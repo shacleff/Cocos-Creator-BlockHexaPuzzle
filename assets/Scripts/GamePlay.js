@@ -264,7 +264,7 @@ cc.Class({
                     return false;
                 };
                 let pieces = Array.from(this.listHexagonsGroup[0].pieces);
-                number = pieces.length;
+                // number = pieces.length;  //test same rotate
                 while(number > 0 && pieces.length > 0){
                     if(pieces.length == 0)break;
                     let randomIndex = ~~(Math.random() * pieces.length);
