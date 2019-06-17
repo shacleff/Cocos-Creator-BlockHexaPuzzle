@@ -26,10 +26,23 @@ cc.Class({
         if(this.rotateTutorialShowed || this.rotateTutorial)return;
         this.uuidPieceTutorial = pieceNode.uuid;
         this.rotateTutorial = cc.instantiate(this.tutorialPrefab);
-        this.rotateTutorial.setPosition(pieceNode.position);
+        let piece = pieceNode.getComponent('Piece');
+        if(piece && piece.blocks.length > 0)this.rotateTutorial.setPosition(this.getPositionBotRightPiece(piece));
+        else this.rotateTutorial.setPosition(pieceNode.position);
         window.gamePlay.node.addChild( this.rotateTutorial, 30);
         this.rotateTutorialShowed = true;
         this.save(KEY_ROTATE_TUTORIAL, true);
+    },
+
+    getPositionBotRightPiece(piece){
+        let okPos = piece.blocks[0].position;
+        for(let block of piece.blocks){
+            let pos = block.position;
+            if(pos.y < okPos.y || (pos.y == okPos.y && pos.x < okPos.x))
+                okPos = pos;
+        }
+        okPos = window.gamePlay.convertToCanvasPosition(piece.node, okPos);
+        return okPos;
     },
 
     hideRotatePieceTutorial(){

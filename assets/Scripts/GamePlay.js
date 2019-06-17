@@ -61,6 +61,10 @@ cc.Class({
             default: [],
             type: cc.SpriteFrame
         },
+        shadowTypes:{
+            default: [],
+            type: cc.SpriteFrame
+        },
         hole:{
             default: null,
             type: cc.SpriteFrame
@@ -126,11 +130,15 @@ cc.Class({
         this.rangeGenerateHexa = this.calculateRangeGenHexa();
         console.log("rangeGenerateHexa : " + this.rangeGenerateHexa);
         this.generatePiece();
+        this.arrangeHexagons();
         //save hint
         for(let group of this.listHexagonsGroup){
             for(let hexagon of group.hexagons)
-                if(hexagon && hexagon.block)
-                    this.functionHandler.saveHint(hexagon, hexagon.block.getComponent(cc.Sprite).spriteFrame);
+                if(hexagon && hexagon.block){
+                    let hintFrame = hexagon.block.getComponent('Block').hintFrame;
+                    if(hintFrame)this.functionHandler.saveHint(hexagon, hintFrame);
+                }
+                    
             for(let piece of group.pieces)
                 this.functionHandler.saveAuto(piece, piece.node.position);
         }
@@ -206,7 +214,7 @@ cc.Class({
                 this.clearBoard();
                 this.resultNode.active = true;
                 this.levelUnlockLabel.getComponent(cc.Label).string = "Level " + (this.levelMgr.currentLevel + 1) + " ";
-                this.levelEffectLabel.getComponent(cc.Label).string = this.levelMgr.currentLevel + 1 + " ";
+                this.levelEffectLabel.getComponent(cc.Label).string = this.levelMgr.currentLevel + 1;
             }, this)));
         }
     },
@@ -242,7 +250,10 @@ cc.Class({
                             return true;
                         }, this);
                         if(center != -1){
-                            return true;
+                            let around = [];
+                            for(let i in piece.blocks)if(i!=center)around.push(piece.blocks[i].position);
+                            let length2P = Math.floor(around[1].sub(around[0]).mag());
+                            if(length2P > 1.5 * piece.blocks[0].getContentSize().width)return true;
                         }
                     }else if(piece.blocks.length == 7){
 
@@ -292,6 +303,7 @@ cc.Class({
             this.numberBlocks = 0;
             this.type = 0;
             this.piecePositions = [];
+            this.group = null;
         };
         let arrayPieceCreations = [];
         //get number pieces
@@ -303,10 +315,6 @@ cc.Class({
         cc.log("Number Piece : " + numberPieces);
         //get number blocks each piece : get value to arrayPieceCreations
         {
-            let numberHexagonsTemp = this.numberHexagons;
-            let maxBlocks = this.numberBlockEachPieces.max;
-            let minBlocks = this.numberBlockEachPieces.min;
-
             if(this.numberHexagons % numberPieces == 0){
                 let numberEachPiece = this.numberHexagons / numberPieces;
                 for(let c of arrayPieceCreations)c.numberBlocks = numberEachPiece;
@@ -317,23 +325,24 @@ cc.Class({
                 arrayPieceCreations[arrayPieceCreations.length - 1].numberBlocks = this.numberHexagons % numberPieces;
             }
 
-
             //get random
+            let numberHexagonsTemp = this.numberHexagons;
+            let maxBlocks = this.numberBlockEachPieces.max;
+            let minBlocks = this.numberBlockEachPieces.min;
         }
-        for(let piece of arrayPieceCreations)cc.log("Block each Piece : " + piece.numberBlocks);
         //get grid available to put block : out put to gridAvaiable
         let gridAvaiable = [];
-            let rangerVertical = new Range(), rangerHorizontal = new Range();
-            rangerVertical.min = this.positionStartGenHexa.row - this.rangeGenerateHexa.height / 2;
-            rangerVertical.max = this.positionStartGenHexa.row + this.rangeGenerateHexa.height / 2;
-            rangerHorizontal.min = this.positionStartGenHexa.column - this.rangeGenerateHexa.width / 2;
-            rangerHorizontal.max = this.positionStartGenHexa.column + this.rangeGenerateHexa.width / 2;
+        let rangerVertical = new Range(), rangerHorizontal = new Range();
+        rangerVertical.min = this.positionStartGenHexa.row - this.rangeGenerateHexa.height / 2;
+        rangerVertical.max = this.positionStartGenHexa.row + this.rangeGenerateHexa.height / 2;
+        rangerHorizontal.min = this.positionStartGenHexa.column - this.rangeGenerateHexa.width / 2;
+        rangerHorizontal.max = this.positionStartGenHexa.column + this.rangeGenerateHexa.width / 2;
 
-            for(let row = 0; row < this.realSizePlay.height; row++)
-                if(row >= ~~rangerVertical.min && row <= rangerVertical.max)
-                    for(let column = 0; column < this.realSizePlay.width; column++)
-                        if(column >= ~~rangerHorizontal.min && column <= rangerHorizontal.max)
-                            gridAvaiable.push({row, column});
+        for(let row = 0; row < this.realSizePlay.height; row++)
+            if(row >= ~~rangerVertical.min && row <= rangerVertical.max)
+                for(let column = 0; column < this.realSizePlay.width; column++)
+                    if(column >= ~~rangerHorizontal.min && column <= rangerHorizontal.max)
+                        gridAvaiable.push({row, column});
                             
         let usedPosition = [];
 
@@ -342,9 +351,8 @@ cc.Class({
                 return element.row == row && element.column == column;
             });
         };
-        let getRandomInArray = array =>{
-            return array[~~(Math.random() * array.length)];
-        };
+        let getRandomInArray = array => array[~~(Math.random() * array.length)];
+    
         let getPositionAround = (row, column) =>{
             let result = [];
             for(let i = 0; i < EDirection.COUNT; i++){
@@ -468,7 +476,7 @@ cc.Class({
     
         //create blocks
         this.listHexagonsGroup.length = 0;
-        for(let groupI = 0; groupI < this.numberHexagonsGroup; groupI++){
+        for(let groupI = 0; groupI < 1; groupI++){
             let group = cc.instantiate(this.hexagonGroupPrefab);
             let groupCom = group.getComponent('HexagonGroup');
             this.listHexagonsGroup.push(groupCom);
@@ -481,21 +489,25 @@ cc.Class({
                     //hexagon
                     let hexagon = this.createHexagonsAt(pos.row, pos.column);
                     groupCom.push(hexagon);
-                    let block = this.createBlockAtPos(pos.row, pos.column, this.blockTypes[createI % this.blockTypes.length]);
+                    let frameIndex = createI % this.blockTypes.length;
+                    let block = this.createBlockAtPos(pos.row, pos.column, this.blockTypes[frameIndex], this.shadowTypes[frameIndex]);
                     pieceCom.pushBlock(block);
                     let hexagonCom = hexagon.getComponent('Hexagon');
                     hexagonCom.block = block;
                 }
             }
         }
+    },
 
-        
+    arrangeHexagons(){
+
     },
 
     //@Return : a node object which contains Block component
-    createBlockAtPos(row, column, spriteFrame){
+    createBlockAtPos(row, column, spriteFrame, hintFrame = null){
         let block = cc.instantiate(this.blockPrefab);
         block.getComponent(cc.Sprite).spriteFrame = spriteFrame;
+        if(hintFrame)block.getComponent('Block').hintFrame = hintFrame;
         block.setPosition(this.grid[row][column]);
         block.setContentSize(this.sizeHexagonOnBoard.width, this.sizeHexagonOnBoard.height);
         this.node.addChild(block, 1);
@@ -712,10 +724,10 @@ cc.Class({
             listHexagons[i].block = piece.blocks[i];
         }
         //shadow
-        let sprite = piece.blocks[0].getComponent(cc.Sprite);
+        let sprite = piece.blocks[0].getComponent('Block');
         if(sprite){
             listHexagons.forEach(hexa =>{
-                hexa.setShadow(sprite.spriteFrame);
+                hexa.setShadow(sprite.hintFrame);
             });
         }
 

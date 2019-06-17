@@ -1,0 +1,32 @@
+{
+  "ver": "2.3.0",
+  "uuid": "66c2f8a8-4f92-4ac8-830e-0fc564348d07",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "platformSettings": {},
+  "subMetas": {
+    "Science_01": {
+      "ver": "1.0.4",
+      "uuid": "d89f927c-7dd2-4b95-8d1c-b1776461da01",
+      "rawTextureUuid": "66c2f8a8-4f92-4ac8-830e-0fc564348d07",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 187,
+      "height": 249,
+      "rawWidth": 187,
+      "rawHeight": 249,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

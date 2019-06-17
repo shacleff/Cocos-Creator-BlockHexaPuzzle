@@ -22,7 +22,7 @@ cc.Class({
 
     onLoad(){
         let coinSave = cc.sys.localStorage.getItem(this.keySave);
-        if(coinSave)this.coin = coinSave;
+        if(coinSave)this.coin = Number(coinSave);
         this.label = this.node.getChildByName('Count').getComponent(cc.Label);
         this.label.string = this.coin;
     },
@@ -48,7 +48,7 @@ cc.Class({
     },
 
     convertCoinToString(value){
-        return value;
+        return value + "";
     },
 
     saveCoins(){

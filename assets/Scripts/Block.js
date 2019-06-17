@@ -16,6 +16,11 @@ cc.Class({
             default: null,
             visible: false
         },
+        hintFrame: {
+            type: cc.SpriteFrame,
+            default: null,
+            visible: false
+        },
         durationMove : 0.2
     },
 
