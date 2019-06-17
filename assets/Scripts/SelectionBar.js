@@ -80,6 +80,7 @@ cc.Class({
     },
 
     resize(){
+        if(this.pieceRects.length <= 0)return;
         //shuffle random array
         for (let i = this.pieceRects.length - 1; i > 0; i--) {
             const j = ~~(Math.random() * (i + 1));
@@ -113,6 +114,7 @@ cc.Class({
         let posStart = cc.v2(-this.rangeHorizontal, this.rangeVertical);
         posStart = this.convertFromBarToCanvasPos(posStart);
         let posTemp = posStart.clone();
+        let sizeBlock = this.getTrueSize(this.pieceRects[0].piece.blocks[0].getContentSize());
         for(let pieceRect of this.pieceRects){
             if(pieceRect.piece.blocks.length > 0){
                 let rect = pieceRect.rect;
@@ -133,10 +135,26 @@ cc.Class({
                 rect.x = posTemp.x;
                 rect.y = posTemp.y;
                 //for next
-                let sizeBlock = this.getTrueSize(pieceRect.piece.blocks[0].getContentSize());
                 posTemp.x += rect.width + this.ratioMarginBox.width * sizeBlock.width;
             }
-        }    
+        }   
+        if(row == 1){
+            let endHozi = posTemp.x - sizeBlock.width;
+            let divForPieces = (this.rangeHorizontal - endHozi) / this.pieceRects.length;
+            for(let i in this.pieceRects){
+                let pieceRect = this.pieceRects[i];
+                let newPos = cc.v2(pieceRect.piece.node.position.x, this.node.position.y);
+                if(i > 0){
+                    newPos.x += i * divForPieces;
+                }
+                pieceRect.piece.positionPiecesArea = newPos;
+                pieceRect.piece.revertToPieces(0, true);
+                pieceRect.rect.x = newPos.x + pieceRect.horizontal.min;
+                pieceRect.rect.y = newPos.y + pieceRect.vertical.min;
+            }
+        }else if(row == 2){
+            let pieceEachRow = this.pieceRects.length / 2;
+        } 
 
         //tutorial for rotate 
         for(let pieceRect of this.pieceRects)
@@ -147,13 +165,16 @@ cc.Class({
 
 
         //ONLY test Rect
-        let test = window.gamePlay.node.getComponent(cc.Graphics);
-        test.clear();
-        for(let pieceRect of this.pieceRects){
-            let rect = pieceRect.rect;
-            test.lineTo(0,0);
-            test.rect(rect.x, rect.y, rect.width, rect.height);
-            test.stroke();    
+        let test = window.gamePlay.node.getChildByName('Test');
+        if(test){
+            test = test.getComponent(cc.Graphics);
+            test.clear();
+            for(let pieceRect of this.pieceRects){
+                let rect = pieceRect.rect;
+                test.lineTo(0,0);
+                test.rect(rect.x, rect.y, rect.width, rect.height);
+                test.stroke();    
+            }
         }
     },
 

@@ -236,10 +236,8 @@ cc.Class({
                             if(compare != length)return false;
                         }
                         return true;
-                    }
-                    if(piece.blocks.length == 3){
-                        return pointsArray([piece.blocks[0].position, piece.blocks[1].position, piece.blocks[2].position]);
-                    }else if(piece.blocks.length == 4){
+                    };
+                    let getCenterIndex = piece =>{
                         let center = piece.blocks.findIndex(o =>{
                             let compare = Math.floor(o.position.sub(piece.blocks[0].position).mag());
                             if(compare == 0)compare = Math.floor(o.position.sub(piece.blocks[1].position).mag());
@@ -249,18 +247,24 @@ cc.Class({
                             }
                             return true;
                         }, this);
+                        return center;
+                    };
+                    if(piece.blocks.length == 3){
+                        return pointsArray([piece.blocks[0].position, piece.blocks[1].position, piece.blocks[2].position]);
+                    }else if(piece.blocks.length == 4){
+                        let center = getCenterIndex(piece);
                         if(center != -1){
                             let around = [];
                             for(let i in piece.blocks)if(i!=center)around.push(piece.blocks[i].position);
-                            let length2P = Math.floor(around[1].sub(around[0]).mag());
-                            if(length2P > 1.5 * piece.blocks[0].getContentSize().width)return true;
+                            return pointsArray(around);
                         }
                     }else if(piece.blocks.length == 7){
-
+                        return getCenterIndex(piece) == -1;
                     }
                     return false;
                 };
                 let pieces = Array.from(this.listHexagonsGroup[0].pieces);
+                number = pieces.length;
                 while(number > 0 && pieces.length > 0){
                     if(pieces.length == 0)break;
                     let randomIndex = ~~(Math.random() * pieces.length);
