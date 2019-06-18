@@ -71,6 +71,27 @@ cc.Class({
             this.shadow.opacity = 0;
     },
 
+    update(dt){
+        if(this.hinted)
+        {
+            if(this.block){
+                let blockCom = this.block.getComponent('Block');
+                let hexaHint = this.shadow.getComponent(cc.Sprite);
+                if(blockCom && hexaHint){
+                    if(blockCom.isHold){
+                        this.shadow.opacity = this.shadowOpacity;
+                    }else if(blockCom.hintFrame && blockCom.hintFrame.name == hexaHint.spriteFrame.name){
+                        this.shadow.opacity = 0;
+                    }
+                }else{
+                    this.shadow.opacity = this.shadowOpacity;
+                }
+            }else{
+                this.shadow.opacity = this.shadowOpacity;
+            }
+        }
+    },
+
     clear(){
         this.shadow.destroy();
     }

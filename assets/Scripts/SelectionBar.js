@@ -139,17 +139,14 @@ cc.Class({
             }
         }   
         if(row == 1){
-            let lastHozi = posTemp.x - sizeBlock.width * this.ratioMarginBox.width;
-            this.orderPieceInRow(this.pieceRects, 0, lastHozi);
+            this.orderPieceInRow(this.pieceRects, 0);
         }else if(row == 2){
-            let inRow1 = this.pieceRects.length / 2;
-            let inRow2 = this.pieceRects.length - inRow1;
+            let inRow1 = ~~(this.pieceRects.length / 2);
             let listRow1 = [], listRow2 = [];
             for(let i = 0; i < inRow1; ++i)listRow1.push(this.pieceRects[i]);
-            for(let i = inRow1; i < inRow2; ++i)listRow2.push(this.pieceRects[i]);
-            let lastHozi = posTemp.x - sizeBlock.width * this.ratioMarginBox.width;
-            this.orderPieceInRow(listRow1, 1, lastHozi);
-            this.orderPieceInRow(listRow2, -1, lastHozi);
+            for(let i = inRow1; i < this.pieceRects.length; ++i)listRow2.push(this.pieceRects[i]);
+            this.orderPieceInRow(listRow1, 1);
+            this.orderPieceInRow(listRow2, -1);
         } 
 
         //tutorial for rotate 
@@ -174,13 +171,15 @@ cc.Class({
         }
     },
 
-    orderPieceInRow(arrayPiece, anchorY, lastHozi){
-        let divForPieces = (this.rangeHorizontal - lastHozi) / this.pieceRects.length;
+    orderPieceInRow(arrayPiece, anchorY){
+        let space = this.getLastHozi(arrayPiece);
         for(let i in arrayPiece){
+            i = Number(i);
             let pieceRect = arrayPiece[i];
             let newPos = this.getPositionByAnchorVertical(anchorY, pieceRect);
-            if(i > 0) newPos.x += i * divForPieces;
+            if(i >= 0) newPos.x += (i + 0.5) * space;
             pieceRect.piece.positionPiecesArea = newPos;
+            cc.log("new pos : " + newPos);
             pieceRect.piece.revertToPieces(0, true);
             pieceRect.rect.x = newPos.x + pieceRect.horizontal.min;
             pieceRect.rect.y = newPos.y + pieceRect.vertical.min;
@@ -204,6 +203,15 @@ cc.Class({
         }
 
         return piecePosition;
+    },
+
+    getLastHozi(arrayPiece){
+        let sizeBlock = this.getTrueSize(arrayPiece[0].piece.blocks[0].getContentSize());
+        let spaceOrigin = this.ratioMarginBox.width * sizeBlock.width;
+        let totalWidth =  this.rangeHorizontal * 2;
+        let totalWidthOfPieces = 0;
+        for(let pieceRect of arrayPiece)totalWidthOfPieces += pieceRect.rect.width;
+        return Math.abs(totalWidth - totalWidthOfPieces) / arrayPiece.length - spaceOrigin;
     },
 
     convertFromBarToCanvasPos(position){

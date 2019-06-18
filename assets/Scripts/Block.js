@@ -25,6 +25,7 @@ cc.Class({
     },
 
     onLoad () {
+        this.isHold = false;
         this.countTime = Date.now();
 
         this.node.on(cc.Node.EventType.TOUCH_START, this.touchStart, this)
@@ -46,6 +47,7 @@ cc.Class({
 
     touchMove(event){
         if(this.piece){
+            this.piece.setBlockIsHold(true);
             window.gamePlay.releasePieceFromHexagon(this.piece);
             let offset = event.touch.getDelta();
             this.piece.moveBy(offset);
@@ -61,6 +63,7 @@ cc.Class({
 
     touchEnd(event){
         if(this.piece){
+            this.piece.setBlockIsHold(false);
             let hexagonsAvaiable = window.gamePlay.isPieceFit(this.piece);
             if(hexagonsAvaiable.length == this.piece.blocks.length){
                 window.gamePlay.setToNewHexagons(this.piece, hexagonsAvaiable);
@@ -80,4 +83,5 @@ cc.Class({
         }
         window.gamePlay.hideAllShadow(false);
     },
+
 });

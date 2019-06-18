@@ -8,7 +8,8 @@ cc.Class({
     properties: {
         levelNode: cc.Node,
         functionNode: cc.Node,
-        isClearData: false
+        isClearData: false,
+        maxLevelSaved : 3
     },
 
     onLoad(){
@@ -31,7 +32,7 @@ cc.Class({
 
     saveData(level, difficult, hints){
         if(level)cc.sys.localStorage.setItem(KEY_LEVEL, level);
-        if(difficult)cc.sys.localStorage.setItem(KEY_DIFFICULT, difficult);
+        if(difficult)cc.sys.localStorage.setItem(KEY_DIFFICULT, (difficult > 3 ?  3 : difficult));
         if(hints)cc.sys.localStorage.setItem(KEY_HINTS, hints);
 
         console.log(`SAVE level : ${level}, diffi : ${difficult}, hints: ${hints}`);

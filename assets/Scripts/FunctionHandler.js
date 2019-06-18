@@ -42,16 +42,22 @@ cc.Class({
             default: null,
             type: cc.Prefab
         },
-        
+        isPaused:{
+            default: false,
+            visible: false
+        },
     },
 
     onLoad(){
-        this.countHintLabel = this.countHintNode.getComponent(cc.Label);
-        this.countHintLabel.string = this.numberHint;
-        if(this.numberHint <= 0)this.adsHintNode.active = true;
-        else this.adsHintNode.active = false;
-        this.countHintNode.active = !this.adsHintNode.active;
-        this.isPaused = false;
+        if(this.countHintNode){
+            this.countHintLabel = this.countHintNode.getComponent(cc.Label);
+            this.countHintLabel.string = this.numberHint;
+            this.countHintNode.active = !this.adsHintNode.active;
+        }
+        if(this.adsHintNode){
+            if(this.numberHint <= 0)this.adsHintNode.active = true;
+            else this.adsHintNode.active = false;
+        }
         this.countSuggestHint = Date.now();
     },
 
@@ -83,9 +89,13 @@ cc.Class({
         }
 
         //suggest hint
-        let time = Date.now();
-        if(time - this.countSuggestHint >= this.timeSuggestUseHint * 1000 && this.hintBtn.getNumberOfRunningActions() == 0){
+        let subTime = Date.now() - this.countSuggestHint;
+        if(subTime >= this.timeSuggestUseHint * 1000 && this.hintBtn.getNumberOfRunningActions() == 0){
             this.suggestHint();
+        }else if(window.gamePlay.npc){
+            if(subTime >= (this.timeSuggestUseHint - window.gamePlay.npc.timeBoredBeforeHint) * 1000 && this.hintBtn.getNumberOfRunningActions() == 0){
+                window.gamePlay.npc.bored();
+            }
         }
     },
 
@@ -111,7 +121,8 @@ cc.Class({
             piece.revertToPieces(0.1, false);
         }
         this.offSuggestHint();
-        window.gamePlay.reset();
+        if(window.gamePlay.npc)window.gamePlay.npc.angry();
+        // window.gamePlay.reset();
     },
 
     hint(){
@@ -152,6 +163,7 @@ cc.Class({
         }
         this.isHint = true;
         this.numberHint--;
+        if(window.gamePlay.npc)window.gamePlay.npc.like();
         //set count
         this.showHintNumber();
     },
@@ -186,10 +198,9 @@ cc.Class({
     },
 
     showQuitPopup(){
-        if(window.gamePlay.isWin)return;
-
         let quit = cc.instantiate(this.quitPopup);
         window.gamePlay.node.addChild(quit, 10);
+        if(window.gamePlay.npc)window.gamePlay.npc.sad();
     },
 
     autoPlay(){

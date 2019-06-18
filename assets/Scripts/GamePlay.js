@@ -84,6 +84,10 @@ cc.Class({
             default: null,
             visible: false
         },
+        NPCNode: {
+            default: null,
+            type: cc.Node
+        },
         listHexagonsGroup : [], 
         resultNode : cc.Node,
         levelUnlockLabel: cc.Node,
@@ -105,6 +109,7 @@ cc.Class({
         this.listHoles = [];
         this.percentRotatablePiece = [];
         this.coin = this.node.getChildByName('Coin').getComponent('Coin');
+        this.npc = this.NPCNode.getComponent('Scientist');
     },
 
     start () {
@@ -634,7 +639,7 @@ cc.Class({
         let measureScreenSide = this.node.width < this.node.height ? this.node.width : this.node.height;
         let measurePlaySide = (this.realSizePlay.width > this.realSizePlay.height ? this.realSizePlay.width : this.realSizePlay.height) + 1;
         this.sizeHexagonOnBoard = cc.size(measureScreenSide / (measurePlaySide - 0.4), measureScreenSide / (measurePlaySide - 0.4));
-
+        cc.log("size : " + this.sizeHexagonOnBoard);
         //calculate realsize each block
         let obj = cc.instantiate(this.blockPrefab);
         let originSize = obj.getContentSize();
@@ -734,8 +739,6 @@ cc.Class({
                 hexa.setShadow(sprite.hintFrame);
             });
         }
-
-        this.functionHandler.offSuggestHint();
     },
 
     hideAllShadow(force){

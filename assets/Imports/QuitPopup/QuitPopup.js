@@ -21,11 +21,14 @@ cc.Class({
     },
 
     yes(){
-        cc.game.end();   
+        if(isGoHome)
+            cc.director.loadScene('Home');
+           
     },
 
     no(){
         this.node.destroy();
+        if(window.gamePlay.npc)window.gamePlay.npc.like();
     }
 
 });

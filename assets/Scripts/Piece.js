@@ -41,6 +41,13 @@ cc.Class({
         this.node.zIndex = 10;
     },
 
+    setBlockIsHold(value){
+        this.blocks.forEach(block =>{
+            let com = block.getComponent('Block');
+            if(com)com.isHold = value;
+        });
+    },
+
     setZindexAll(value){
         this.blocks.forEach(block =>{
             block.zIndex = value;
