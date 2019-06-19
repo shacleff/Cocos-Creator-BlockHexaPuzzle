@@ -12,7 +12,7 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-        isGoHome : false
+        isGoHome : true
     },
     
     start(){
@@ -21,7 +21,7 @@ cc.Class({
     },
 
     yes(){
-        if(isGoHome)
+        if(this.isGoHome)
             cc.director.loadScene('Home');
            
     },

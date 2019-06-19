@@ -1,0 +1,59 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "pieceWelcom",
+  "_objFlags": 0,
+  "_native": "",
+  "_duration": 1.5,
+  "sample": 60,
+  "speed": 1,
+  "wrapMode": 1,
+  "curveData": {
+    "paths": {
+      "Piece": {
+        "props": {
+          "position": [
+            {
+              "frame": 0,
+              "value": [
+                300,
+                -300,
+                0
+              ]
+            },
+            {
+              "frame": 0.75,
+              "value": [
+                300,
+                -300,
+                0
+              ]
+            },
+            {
+              "frame": 1.0833333333333333,
+              "value": [
+                106.5,
+                103,
+                0
+              ]
+            },
+            {
+              "frame": 1.5,
+              "value": [
+                106.5,
+                103,
+                0
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "events": [
+    {
+      "frame": 1.5,
+      "func": "destroyBlock",
+      "params": []
+    }
+  ]
+}

@@ -12,47 +12,45 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-        piece: {
+        welcomPlayPrefab: {
             default: null,
-            type: cc.Node
+            type: cc.Prefab
         },
-        hexagoGoTo: {
-            default: null,
-            type: cc.Node
-        },
-        delayTimeToRun : 3,
-        timeMove : 3,
-        delayTimeToReset : 1
     },
 
     // LIFE-CYCLE CALLBACKS:
 
-    onLoad () {
+    onLoad(){
         window.gamePlay = this;
         let fd = this.node.getChildByName('FunctionHandler');
         if(fd){
             let com = fd.getComponent('FunctionHandler');
             if(com)com.isPaused = true;
         }
+        this.actionHandler = this.node.getChildByName('ActionHandler').getComponent('ActionHandler');
+        let play = this.node.getChildByName('PlayBtn');
+        if(play)play.zIndex = 10;
+        let title = this.node.getChildByName('Hex LOGO');
+        if(title)title.zIndex = 10;
+        //Event
         cc.director.preloadScene('GamePlay');
         this.node.on(cc.Node.EventType.TOUCH_END, (event)=>{
             cc.director.loadScene('GamePlay');
         }, this);
     },
 
-    start () {
-        this.oldPos = this.piece.position; 
-        this.run();
+    start(){
+        this.autoPlay = cc.instantiate(this.welcomPlayPrefab);
+        this.node.addChild(this.autoPlay);
     },
 
-    run(){
-        this.piece.runAction(cc.repeatForever(cc.sequence(
-            cc.delayTime(this.delayTime),
-            cc.moveTo(this.timeMove, this.hexagoGoTo.position), 
-            cc.delayTime(this.delayTimeToReset),
+    refresh(){
+        this.node.runAction(
             cc.callFunc(()=>{
-                    this.piece.position = this.oldPos;
-            }, this))
-        ));
-    },
+                this.autoPlay.destroy();
+                this.autoPlay = cc.instantiate(this.welcomPlayPrefab);
+                this.node.addChild(this.autoPlay);
+            }, this)
+        )
+    }
 });

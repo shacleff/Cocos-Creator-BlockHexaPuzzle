@@ -13,22 +13,19 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Hexagon",
+    "_name": "ActionHandler",
     "_objFlags": 0,
     "_parent": null,
     "_children": [],
     "_active": true,
-    "_level": 1,
+    "_level": 2,
     "_components": [
       {
         "__id__": 2
-      },
-      {
-        "__id__": 3
       }
     ],
     "_prefab": {
-      "__id__": 4
+      "__id__": 3
     },
     "_opacity": 255,
     "_color": {
@@ -40,8 +37,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 454,
-      "height": 392
+      "width": 0,
+      "height": 0
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -50,8 +47,8 @@
     },
     "_position": {
       "__type__": "cc.Vec3",
-      "x": 264.735,
-      "y": 828.732,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_scale": {
@@ -74,47 +71,18 @@
     "_id": ""
   },
   {
-    "__type__": "cc.Sprite",
+    "__type__": "6bf98T63m9LcJyAQJ9/wXtk",
     "_name": "",
     "_objFlags": 0,
     "node": {
       "__id__": 1
     },
     "_enabled": true,
-    "_materials": [],
-    "_srcBlendFactor": 770,
-    "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "665be3a5-d540-44eb-8811-4f84523735ef"
-    },
-    "_type": 0,
-    "_sizeMode": 1,
-    "_fillType": 0,
-    "_fillCenter": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_fillStart": 0,
-    "_fillRange": 0,
-    "_isTrimmedMode": true,
-    "_atlas": null,
-    "_id": ""
-  },
-  {
-    "__type__": "9a406xQdGdAA5xpVzQLNjms",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "group": null,
-    "row": -1,
-    "column": -1,
-    "block": null,
-    "shadow": null,
-    "shadowOpacity": 90,
+    "selectionScale": 0.5,
+    "angleRotate": 120,
+    "timeToActiveTapRotate": 0.5,
+    "showRotateAngleChange": 30,
+    "showRotateRepeattimes": 2,
     "_id": ""
   },
   {
@@ -123,9 +91,9 @@
       "__id__": 1
     },
     "asset": {
-      "__uuid__": "f60b8103-3bff-47b0-ac25-c3d6527a6d50"
+      "__id__": 0
     },
-    "fileId": "91xB8nnlFLsaN6ckRA+D6N",
+    "fileId": "a05IRgNsRKXIELwBNlIQJ3",
     "sync": false
   }
 ]

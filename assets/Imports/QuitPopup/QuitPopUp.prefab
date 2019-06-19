@@ -1849,7 +1849,7 @@
       "__id__": 1
     },
     "_enabled": true,
-    "isGoHome": false,
+    "isGoHome": true,
     "_id": ""
   },
   {

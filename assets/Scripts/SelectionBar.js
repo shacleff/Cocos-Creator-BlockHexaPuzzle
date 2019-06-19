@@ -138,37 +138,37 @@ cc.Class({
                 posTemp.x += rect.width + this.ratioMarginBox.width * sizeBlock.width;
             }
         }   
-        if(row == 1){
-            this.orderPieceInRow(this.pieceRects, 0);
-        }else if(row == 2){
-            let inRow1 = ~~(this.pieceRects.length / 2);
-            let listRow1 = [], listRow2 = [];
-            for(let i = 0; i < inRow1; ++i)listRow1.push(this.pieceRects[i]);
-            for(let i = inRow1; i < this.pieceRects.length; ++i)listRow2.push(this.pieceRects[i]);
-            this.orderPieceInRow(listRow1, 1);
-            this.orderPieceInRow(listRow2, -1);
-        } 
+        // if(row == 1){
+        //     this.orderPieceInRow(this.pieceRects, 0);
+        // }else if(row == 2){
+        //     let inRow1 = ~~(this.pieceRects.length / 2);
+        //     let listRow1 = [], listRow2 = [];
+        //     for(let i = 0; i < inRow1; ++i)listRow1.push(this.pieceRects[i]);
+        //     for(let i = inRow1; i < this.pieceRects.length; ++i)listRow2.push(this.pieceRects[i]);
+        //     this.orderPieceInRow(listRow1, 1);
+        //     this.orderPieceInRow(listRow2, -1);
+        // } 
 
-        //tutorial for rotate 
-        for(let pieceRect of this.pieceRects)
-            if(pieceRect.piece && pieceRect.piece.canRotate){
-                window.gamePlay.tutorial.showRotatePieceTutorial(pieceRect.piece.node);
-                break;
-            }
+        // //tutorial for rotate 
+        // for(let pieceRect of this.pieceRects)
+        //     if(pieceRect.piece && pieceRect.piece.canRotate){
+        //         window.gamePlay.tutorial.showRotatePieceTutorial(pieceRect.piece.node);
+        //         break;
+        //     }
 
 
         //ONLY test Rect
-        let test = window.gamePlay.node.getChildByName('Test');
-        if(test){
-            test = test.getComponent(cc.Graphics);
-            test.clear();
-            for(let pieceRect of this.pieceRects){
-                let rect = pieceRect.rect;
-                test.lineTo(0,0);
-                test.rect(rect.x, rect.y, rect.width, rect.height);
-                test.stroke();    
-            }
-        }
+        // let test = window.gamePlay.node.getChildByName('Test');
+        // if(test){
+        //     test = test.getComponent(cc.Graphics);
+        //     test.clear();
+        //     for(let pieceRect of this.pieceRects){
+        //         let rect = pieceRect.rect;
+        //         test.lineTo(0,0);
+        //         test.rect(rect.x, rect.y, rect.width, rect.height);
+        //         test.stroke();    
+        //     }
+        // }
     },
 
     orderPieceInRow(arrayPiece, anchorY){

@@ -35,6 +35,20 @@ export var ActionHandler = cc.Class({
         piece.node.scale = value;
     },
 
+    destroyAnimation(block){
+        let x = RandomRange(-300, 300);
+        let y = window.gamePlay.node.height;
+        block.runAction((
+            // cc.repeatForever(cc.rotateBy(1, 250)),
+            cc.sequence(
+                cc.jumpBy(2, cc.v2(x, -y), 1000, 1), 
+                cc.callFunc(()=>{
+                    block.destroy();
+                }, block))
+        ))
+    },
+
+
     rotatePiece(piece){
         if(piece.canRotate){
             this.stopShowCanRotate(piece);

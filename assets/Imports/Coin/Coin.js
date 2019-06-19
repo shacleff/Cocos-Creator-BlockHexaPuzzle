@@ -21,6 +21,7 @@ cc.Class({
     },
 
     onLoad(){
+        this.node.zIndex = 110;
         let coinSave = cc.sys.localStorage.getItem(this.keySave);
         if(coinSave)this.coin = Number(coinSave);
         this.label = this.node.getChildByName('Count').getComponent(cc.Label);

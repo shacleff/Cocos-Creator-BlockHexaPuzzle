@@ -122,7 +122,7 @@ cc.Class({
         }
         this.offSuggestHint();
         if(window.gamePlay.npc)window.gamePlay.npc.angry();
-        // window.gamePlay.reset();
+        window.gamePlay.reset();
     },
 
     hint(){

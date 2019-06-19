@@ -80,8 +80,8 @@ cc.Class({
             if(this.piece.node.scale != 1){
                 window.gamePlay.actionHandler.showCanRotate(this.piece);
             }
+            window.gamePlay.hideAllShadow(false);
         }
-        window.gamePlay.hideAllShadow(false);
     },
 
 });
