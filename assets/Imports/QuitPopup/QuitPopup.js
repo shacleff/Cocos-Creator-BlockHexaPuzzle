@@ -16,14 +16,17 @@ cc.Class({
     },
     
     start(){
-        // cc.director.pause();
         this.node.getChildByName('BG').on(cc.Node.EventType.TOUCH_START, ()=>{}, this);
     },
 
     yes(){
-        if(this.isGoHome)
-            cc.director.loadScene('Home');
-           
+        // if(typeof window.gamePlay.isWin != 'undefined')this.isGoHome = true;
+        // else this.isGoHome = false;
+        // let scene = cc.director.getScene().name;
+        // if(scene == 'GamePlay' || this.isGoHome)cc.director.loadScene('Home');
+        // else if(!this.isGoHome){
+            OnBackButton();
+        // }
     },
 
     no(){

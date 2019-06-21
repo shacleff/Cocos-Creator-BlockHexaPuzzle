@@ -27,6 +27,7 @@ cc.Class({
         maxSizePlayBoard: cc.size(9,9),    //use to modify properties panel easily, please use : this.realSizePlay for logic
         pointCenterPlayBoard: cc.v2(0,0),
         ignoreFinal : false,
+        widthOutLineHexagon : 1.1,
         //setting objects in gameboard
         hexagonPrefab:{
             default: null,
@@ -54,6 +55,10 @@ cc.Class({
             type: cc.Prefab
         },
         shadowPrefab:{
+            default: null,
+            type: cc.Prefab
+        },
+        outLine:{
             default: null,
             type: cc.Prefab
         },
@@ -102,11 +107,13 @@ cc.Class({
         this.levelMgr = this.node.getChildByName('LevelManager').getComponent('LevelManager');
         this.saveMgr = this.node.getChildByName('SaveManager').getComponent('SaveManager');
         this.tutorial = this.node.getChildByName('Toturial').getComponent('Tutorial');
+        if(this.saveMgr.isClearData)cc.sys.localStorage.clear();
         this.tutorial.load();
         this.grid = [];
         this.listPositionAvaiable = [];
         this.listHexagonsGroup = [];    //HexagonsGroup array
         this.listHoles = [];
+        this.outLines = [];
         this.percentRotatablePiece = [];
         this.coin = this.node.getChildByName('Coin').getComponent('Coin');
         this.npc = this.NPCNode.getComponent('Scientist');
@@ -175,13 +182,20 @@ cc.Class({
             for(let hole of this.listHoles)hole.destroy();
             this.listHoles.length = 0;
         }
-        if(this.listHexagonsGroup.length > 0){
-            for(let group of this.listHexagonsGroup){
-                group.clear();
-                group.node.destroy();
-            }
-            this.listHexagonsGroup.length = 0;
-        }
+        
+        for(let group of this.listHexagonsGroup)group.animateDestroy();
+        this.node.runAction(cc.sequence(
+            cc.delayTime(this.actionHandler.animationDestroyTime),
+            cc.callFunc(()=>{
+                if(this.listHexagonsGroup.length > 0){
+                    for(let group of this.listHexagonsGroup){
+                        group.clear();
+                        group.node.destroy();
+                    }
+                    this.listHexagonsGroup.length = 0;
+                }
+            }, this)
+        ));
 
         this.tutorial.resetRotatePieceTutorial();
     },
@@ -190,6 +204,7 @@ cc.Class({
         if(!this.isGenerating){
             this.functionHandler.offSuggestHint();
             this.isGenerating = true;
+            if(!this.isWin)this.clearBoard();
             this.clearBoard();
             this.node.getChildByName('SelectionBar').getComponent('SelectionBar').clear();
             this.createGame();
@@ -210,17 +225,28 @@ cc.Class({
             }
         }
         if(this.isWin){
-            //do something
             console.log("WIN");
             if(this.coin)this.coin.addCoin(100);
             this.nextLevel();
             this.saveMgr.saveData(this.levelMgr.currentLevel + 1, this.levelMgr.currentDifficult + 1, null);
-            this.node.runAction(cc.sequence(cc.delayTime(0.5), cc.callFunc(()=>{
-                this.clearBoard();
-                this.resultNode.active = true;
-                this.levelUnlockLabel.getComponent(cc.Label).string = "Level " + (this.levelMgr.currentLevel + 1) + " ";
-                this.levelEffectLabel.getComponent(cc.Label).string = this.levelMgr.currentLevel + 1;
-            }, this)));
+            this.clearBoard();
+            this.node.runAction(cc.sequence(
+                cc.delayTime(this.actionHandler.animationDestroyTime),
+                cc.callFunc(()=>{
+                    this.win();                
+                }, this)));
+        }
+    },
+
+    win(){
+        if(this.isWin){
+            if(this.outLines.length > 0){
+                for(let o of this.outLines)o.destroy();
+                this.outLines.length = 0;
+            }
+            this.resultNode.active = true;
+            this.levelUnlockLabel.getComponent(cc.Label).string = "Level " + (this.levelMgr.currentLevel + 1) + " ";
+             this.levelEffectLabel.getComponent(cc.Label).string = this.levelMgr.currentLevel + 1;
         }
     },
 
@@ -497,12 +523,14 @@ cc.Class({
                 for(let pos of arrayPieceCreations[createI].piecePositions){
                     //hexagon
                     let hexagon = this.createHexagonsAt(pos.row, pos.column);
-                    groupCom.push(hexagon);
-                    let frameIndex = createI % this.blockTypes.length;
-                    let block = this.createBlockAtPos(pos.row, pos.column, this.blockTypes[frameIndex], this.shadowTypes[frameIndex]);
-                    pieceCom.pushBlock(block);
-                    let hexagonCom = hexagon.getComponent('Hexagon');
-                    hexagonCom.block = block;
+                    if(hexagon){
+                        groupCom.push(hexagon);
+                        let frameIndex = createI % this.blockTypes.length;
+                        let block = this.createBlockAtPos(pos.row, pos.column, this.blockTypes[frameIndex], this.shadowTypes[frameIndex]);
+                        pieceCom.pushBlock(block);
+                        let hexagonCom = hexagon.getComponent('Hexagon');
+                        hexagonCom.block = block;
+                    }
                 }
             }
         }
@@ -519,7 +547,7 @@ cc.Class({
         if(hintFrame)block.getComponent('Block').hintFrame = hintFrame;
         block.setPosition(this.grid[row][column]);
         block.setContentSize(this.sizeHexagonOnBoard.width, this.sizeHexagonOnBoard.height);
-        this.node.addChild(block, 1);
+        this.node.addChild(block, 2);
         return block;
     },
 
@@ -531,6 +559,7 @@ cc.Class({
                 row = ~~row;
                 column = ~~column;
                 try {
+                   
                     let position = this.grid[row][column];
                     let hexagonCom = hexagon.getComponent('Hexagon');
                     if(hexagonCom){
@@ -540,7 +569,19 @@ cc.Class({
                     hexagon.setPosition(position);
                     this.listPositionAvaiable.push({row, column});
                     hexagon.setContentSize(this.sizeHexagonOnBoard);
-                    this.node.addChild(hexagon, 0);
+                    this.node.addChild(hexagon, 1);
+                    //create outline
+                    if(this.outLine){
+                        let outile = cc.instantiate(this.outLine);
+                        outile.position = position;
+                        // let size = outile.getContentSize();
+                        let size = this.sizeHexagonOnBoard
+                        let ratio = this.widthOutLineHexagon;
+                        outile.setContentSize(size.width * ratio, size.height* ratio);
+                        this.node.addChild(outile,0);
+                        this.outLines.push(outile);
+                    }
+                    
                     //create shadow
                     if(this.shadowPrefab){
                         hexagonCom.createShadowOn(this.shadowPrefab);
@@ -635,11 +676,27 @@ cc.Class({
 
     generateGridPosition(){
         //calculate size hexagon
+        // maxRatioScale
         console.log(`Screen : ${this.node.width} - ${this.node.height}`);
         let measureScreenSide = this.node.width < this.node.height ? this.node.width : this.node.height;
         let measurePlaySide = (this.realSizePlay.width > this.realSizePlay.height ? this.realSizePlay.width : this.realSizePlay.height) + 1;
         this.sizeHexagonOnBoard = cc.size(measureScreenSide / (measurePlaySide - 0.4), measureScreenSide / (measurePlaySide - 0.4));
-        cc.log("size : " + this.sizeHexagonOnBoard);
+        let canvans = this.node.getComponent(cc.Canvas);
+        if(canvans){
+            let desginSize = canvans.designResolution;
+            let ratioW =  this.node.width / desginSize.width;
+            let ratioH =  this.node.height / desginSize.height;
+            let ratio = ratioW < ratioH ? ratioW : ratioH;
+            let sub = Math.abs(ratioH - ratioW);
+            if(sub > 0.1)ratio -= 0.2;
+            else if(sub > 0.2)ratio -= 0.2;
+            if(this.node.height / this.node.width >= 2)ratio += 0.25;
+            // cc.log("ratioW : " + ratioW);
+            // cc.log("ratioH : " + ratioH);
+            // cc.log("Ratio : " + ratio);
+            this.sizeHexagonOnBoard = cc.size(this.sizeHexagonOnBoard.width * ratio, this.sizeHexagonOnBoard.height * ratio);
+        }
+
         //calculate realsize each block
         let obj = cc.instantiate(this.blockPrefab);
         let originSize = obj.getContentSize();
@@ -649,7 +706,7 @@ cc.Class({
 
         //create grid
         this.grid.length = 0;
-        let halfWidth = this.realSizePlay.width / 3.0; //3 because this is hexagon
+        let halfWidth = this.realSizePlay.width / 3.25; //3 because this is hexagon
         let halfHeight = this.realSizePlay.height / 1.5;
 
         let distanceX = this.sizeHexagonOnBoard.width * 0.75 + this.marginBetweenHexa * 2;

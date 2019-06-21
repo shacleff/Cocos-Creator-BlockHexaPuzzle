@@ -1,0 +1,7 @@
+{
+  "ver": "1.0.0",
+  "uuid": "a5db4fa8-a7a3-40b3-a8e6-b4229da3dd75",
+  "atlasJson": "{\"SubTexture\":[{\"width\":264,\"y\":1,\"height\":264,\"name\":\"Glow_level_up\",\"x\":1}],\"width\":512,\"height\":512,\"name\":\"Fx_Title\",\"imagePath\":\"Fx_Title_tex.png\"}",
+  "texture": "5a797b22-73d9-4b30-a799-151bb37c9426",
+  "subMetas": {}
+}

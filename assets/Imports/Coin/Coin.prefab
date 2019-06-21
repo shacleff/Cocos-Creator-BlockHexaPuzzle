@@ -222,7 +222,8 @@
       "__id__": 1
     },
     "_enabled": true,
-    "coin": 100,
+    "coinAddedLabel": null,
+    "coin": 0,
     "keySave": "coin",
     "_id": ""
   },

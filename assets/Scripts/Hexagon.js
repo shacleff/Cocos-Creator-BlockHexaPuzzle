@@ -50,7 +50,7 @@ cc.Class({
         this.shadow.setPosition(this.node.position);
         this.shadow.setContentSize(this.node.getContentSize());
         // this.node.addChild(this.shadow);
-        window.gamePlay.node.addChild(this.shadow);
+        window.gamePlay.node.addChild(this.shadow, 2);
         this.shadow.opacity = 0;
     },
     setShadow(spriteFrame){

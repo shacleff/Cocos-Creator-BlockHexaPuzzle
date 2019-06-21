@@ -13,7 +13,6 @@ cc.Class({
     },
 
     onLoad(){
-        if(this.isClearData)cc.sys.localStorage.clear();
         let data = this.loadData();
         let levelMgr = this.levelNode.getComponent('LevelManager');
         let actionMgr = this.functionNode.getComponent('FunctionHandler');

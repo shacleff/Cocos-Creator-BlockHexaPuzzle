@@ -5,6 +5,11 @@ cc.Class({
         blocks: [], //node
         positionPiecesArea: cc.v2(0,0),     //anchor to first block in array ( [0] )
         positionInGameBoard: cc.v2(9999,9999),
+        outLine:{
+            default: null,
+            type: cc.Prefab
+        },
+        outLines: [],
     },
 
     onLoad(){
@@ -17,6 +22,10 @@ cc.Class({
         for(let block of this.blocks){
             block.destroy();
         }
+        for(let outline of this.outLines){
+            outline.destroy();
+        }
+        this.outLines.length = 0;
         this.blocks.length = 0;
     },
 
@@ -33,12 +42,21 @@ cc.Class({
         this.blocks.push(block);
         let blockCom = block.getComponent('Block');
         blockCom.piece = this;
+         //create outline for piece
+        let outline = cc.instantiate(this.outLine);
+        outline.position = block.position;
+        let size = block.getContentSize();
+        let ratio = window.gamePlay.widthOutLineHexagon;
+        outline.setContentSize(size.width*ratio, size.height*ratio);
+        this.node.addChild(outline, 0);
+        this.outLines.push(outline);
     },
 
     moveBy(offset){
         window.gamePlay.actionHandler.scalePiece(this, 1);
         this.node.position = this.node.position.add(offset);
         this.node.zIndex = 10;
+        this.setOutLine(true); 
     },
 
     setBlockIsHold(value){
@@ -78,12 +96,17 @@ cc.Class({
         
         if(immediate){
             this.node.position = offset;
-            this.node.zIndex = 0;
+            this.node.zIndex = 1;
         }else{
             this.node.runAction(cc.sequence(cc.moveTo(duration, offset), cc.callFunc(()=>{
-                this.node.zIndex = 0;
+                this.node.zIndex = 1;
             }, this)));
         }    
+
+        this.setOutLine(false); 
     },
 
+    setOutLine(value){
+        this.outLines.forEach(o => o.active = value);
+    }
 })

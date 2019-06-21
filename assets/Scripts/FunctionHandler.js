@@ -49,15 +49,15 @@ cc.Class({
     },
 
     onLoad(){
-        if(this.countHintNode){
-            this.countHintLabel = this.countHintNode.getComponent(cc.Label);
-            this.countHintLabel.string = this.numberHint;
-            this.countHintNode.active = !this.adsHintNode.active;
-        }
         if(this.adsHintNode){
             if(this.numberHint <= 0)this.adsHintNode.active = true;
             else this.adsHintNode.active = false;
         }
+        if(this.countHintNode){
+            this.countHintLabel = this.countHintNode.getComponent(cc.Label);
+            this.countHintLabel.string = this.numberHint;
+            this.countHintNode.active = !this.adsHintNode.active;
+        }   
         this.countSuggestHint = Date.now();
     },
 
@@ -113,7 +113,8 @@ cc.Class({
     },
 
     refresh(){
-        if(window.gamePlay.isWin)return;
+        if(window.gamePlay.isWin && window.gamePlay.listHexagonsGroup.length > 0)return;
+
         let listHexagon = window.gamePlay.listHexagonsGroup[0];
         this.history.length = 0;
         for(let piece of listHexagon.pieces){
@@ -122,7 +123,9 @@ cc.Class({
         }
         this.offSuggestHint();
         if(window.gamePlay.npc)window.gamePlay.npc.angry();
-        window.gamePlay.reset();
+        // window.gamePlay.reset();
+        window.gamePlay.isWin = true;
+        window.gamePlay.win();
     },
 
     hint(){
@@ -134,6 +137,7 @@ cc.Class({
             this.ads.getComponent('AdsVideo').skipCallBack = (()=>{
                 window.gamePlay.functionHandler.numberHint += this.numberHintAddedAfterAds;
                 window.gamePlay.functionHandler.showHintNumber();
+                window.gamePlay.coin.zIndex = -10;
             });
             window.gamePlay.node.addChild(this.ads);
             return;
@@ -169,6 +173,8 @@ cc.Class({
     },
 
     suggestHint(){
+        if(window.gamePlay.isWin)return;
+        
         if(this.hintBtn){
             this.hintBtn.runAction(cc.sequence(cc.jumpBy(0.4, cc.v2(0,0), this.suggestHintJumpHeight, 1), cc.delayTime(0.5)));
             if(this.timeSuggest > 0){

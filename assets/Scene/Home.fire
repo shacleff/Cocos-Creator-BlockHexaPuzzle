@@ -249,7 +249,7 @@
     "_enabled": true,
     "alignMode": 2,
     "_target": null,
-    "_alignFlags": 18,
+    "_alignFlags": 45,
     "_left": 0,
     "_right": 0,
     "_top": 0,
@@ -262,8 +262,8 @@
     "_isAbsBottom": true,
     "_isAbsHorizontalCenter": true,
     "_isAbsVerticalCenter": true,
-    "_originalWidth": 0,
-    "_originalHeight": 0,
+    "_originalWidth": 1080,
+    "_originalHeight": 1920,
     "_id": "e0CNApJFtA6r/oTFJAAQY2"
   },
   {
@@ -980,7 +980,7 @@
     },
     "_enabled": true,
     "coinAddedLabel": null,
-    "coin": 100,
+    "coin": 0,
     "keySave": "coin",
     "_id": "1dvACmm99Ol4uAxrxcDm3E"
   },
@@ -1124,6 +1124,7 @@
     "timeToActiveTapRotate": 0.5,
     "showRotateAngleChange": 30,
     "showRotateRepeattimes": 2,
+    "animationDestroyTime": 2,
     "_id": "e1Z8/6GjhKZaJAH1bRyM2+"
   },
   {
@@ -1171,13 +1172,13 @@
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0.5,
+      "x": 0.3,
       "y": 0.5
     },
     "_position": {
       "__type__": "cc.Vec3",
-      "x": 0,
-      "y": -482.225,
+      "x": -57.400000000000006,
+      "y": -470.5999999999999,
       "z": 0
     },
     "_scale": {
@@ -1237,17 +1238,17 @@
     "_enabled": true,
     "alignMode": 1,
     "_target": null,
-    "_alignFlags": 18,
+    "_alignFlags": 20,
     "_left": 0,
     "_right": 0,
     "_top": 0,
-    "_bottom": 0,
+    "_bottom": 0.17,
     "_verticalCenter": -482.225,
     "_horizontalCenter": 0,
     "_isAbsLeft": true,
     "_isAbsRight": true,
     "_isAbsTop": true,
-    "_isAbsBottom": true,
+    "_isAbsBottom": false,
     "_isAbsHorizontalCenter": true,
     "_isAbsVerticalCenter": true,
     "_originalWidth": 0,
@@ -1294,7 +1295,7 @@
     "_position": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 536.117,
+      "y": 541.8,
       "z": 0
     },
     "_scale": {
@@ -1357,13 +1358,13 @@
     "_alignFlags": 17,
     "_left": 0,
     "_right": 0,
-    "_top": 312.88300000000004,
+    "_top": 0.16,
     "_bottom": 0,
     "_verticalCenter": 0,
     "_horizontalCenter": 0,
     "_isAbsLeft": true,
     "_isAbsRight": true,
-    "_isAbsTop": true,
+    "_isAbsTop": false,
     "_isAbsBottom": true,
     "_isAbsHorizontalCenter": true,
     "_isAbsVerticalCenter": true,
@@ -1518,7 +1519,7 @@
       "height": 1920
     },
     "_fitWidth": true,
-    "_fitHeight": true,
+    "_fitHeight": false,
     "_id": "68xye7/E1Ag5jmDqejBC21"
   },
   {

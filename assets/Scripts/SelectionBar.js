@@ -34,11 +34,16 @@ cc.Class({
             default: null,
             type: cc.Prefab
         },
+
+        grid: cc.Node
     },
 
     onLoad () {
         this.rangeHorizontal = this.node.width / 2 - this.margin.x;
         this.rangeVertical = this.node.height / 2 - this.margin.y;
+        cc.log("selection size : " + this.node.getBoundingBoxToWorld());
+        cc.log("width : " + this.node.width);
+        cc.log("height : " + this.node.height);
     },
 
     clear(){
@@ -75,11 +80,21 @@ cc.Class({
             let posRect = cc.v2(position.x + horizontal.min, position.y + vertical.min);
             let rect = cc.rect(posRect.x, posRect.y, horizontal.max - horizontal.min, vertical.max - vertical.min);
             this.pieceRects.push(new PieceRect(piece, rect, horizontal, vertical));
-            
+
+            cc.log("rect : " + rect);
+            piece.node.removeFromParent(false);
+            // piece.node.setContentSize(cc.size(200, 200));
+            piece.node.setContentSize(cc.size(rect.width, rect.height));
+            piece.node.width = rect.width;
+            piece.node.height = rect.height;
+            this.grid.addChild(piece.node);
+            this.grid.getComponent(cc.Layout).updateLayout();
         }
     },
 
     resize(){
+        this.drawTest();
+        return;
         if(this.pieceRects.length <= 0)return;
         //shuffle random array
         for (let i = this.pieceRects.length - 1; i > 0; i--) {
@@ -95,6 +110,7 @@ cc.Class({
                 let newAnchorPos = cc.v2(rect.x + rect.width / 2, rect.y + rect.height / 2);
                 let offset = newAnchorPos.sub(oldAnchorPos);
                 for(let block of pieceRect.piece.blocks)block.position = block.position.sub(offset);
+                for(let outline of pieceRect.piece.outLines)outline.position = outline.position.sub(offset);
         
                 let side = rect.width > rect.height ? rect.width : rect.height;
                 pieceRect.horizontal.min = -side / 2;
@@ -138,37 +154,23 @@ cc.Class({
                 posTemp.x += rect.width + this.ratioMarginBox.width * sizeBlock.width;
             }
         }   
-        // if(row == 1){
-        //     this.orderPieceInRow(this.pieceRects, 0);
-        // }else if(row == 2){
-        //     let inRow1 = ~~(this.pieceRects.length / 2);
-        //     let listRow1 = [], listRow2 = [];
-        //     for(let i = 0; i < inRow1; ++i)listRow1.push(this.pieceRects[i]);
-        //     for(let i = inRow1; i < this.pieceRects.length; ++i)listRow2.push(this.pieceRects[i]);
-        //     this.orderPieceInRow(listRow1, 1);
-        //     this.orderPieceInRow(listRow2, -1);
-        // } 
+        if(row == 1){
+            this.orderPieceInRow(this.pieceRects, 0);
+        }else if(row == 2){
+            let inRow1 = ~~(this.pieceRects.length / 2);
+            let listRow1 = [], listRow2 = [];
+            for(let i = 0; i < inRow1; ++i)listRow1.push(this.pieceRects[i]);
+            for(let i = inRow1; i < this.pieceRects.length; ++i)listRow2.push(this.pieceRects[i]);
+            this.orderPieceInRow(listRow1, 1);
+            this.orderPieceInRow(listRow2, -1);
+        } 
 
-        // //tutorial for rotate 
-        // for(let pieceRect of this.pieceRects)
-        //     if(pieceRect.piece && pieceRect.piece.canRotate){
-        //         window.gamePlay.tutorial.showRotatePieceTutorial(pieceRect.piece.node);
-        //         break;
-        //     }
-
-
-        //ONLY test Rect
-        // let test = window.gamePlay.node.getChildByName('Test');
-        // if(test){
-        //     test = test.getComponent(cc.Graphics);
-        //     test.clear();
-        //     for(let pieceRect of this.pieceRects){
-        //         let rect = pieceRect.rect;
-        //         test.lineTo(0,0);
-        //         test.rect(rect.x, rect.y, rect.width, rect.height);
-        //         test.stroke();    
-        //     }
-        // }
+        //tutorial for rotate 
+        for(let pieceRect of this.pieceRects)
+            if(pieceRect.piece && pieceRect.piece.canRotate){
+                window.gamePlay.tutorial.showRotatePieceTutorial(pieceRect.piece.node);
+                break;
+            }
     },
 
     orderPieceInRow(arrayPiece, anchorY){
@@ -179,7 +181,6 @@ cc.Class({
             let newPos = this.getPositionByAnchorVertical(anchorY, pieceRect);
             if(i >= 0) newPos.x += (i + 0.5) * space;
             pieceRect.piece.positionPiecesArea = newPos;
-            cc.log("new pos : " + newPos);
             pieceRect.piece.revertToPieces(0, true);
             pieceRect.rect.x = newPos.x + pieceRect.horizontal.min;
             pieceRect.rect.y = newPos.y + pieceRect.vertical.min;
@@ -221,5 +222,39 @@ cc.Class({
     getTrueSize(size){
         let actionHandler =  window.gamePlay.actionHandler;
         return cc.size(size.width * actionHandler.selectionScale, size.height * actionHandler.selectionScale);
+    },
+
+    drawTest(){
+        //ONLY test Rect
+        let test = window.gamePlay.node.getChildByName('Test');
+        if(test){
+            test = test.getComponent(cc.Graphics);
+            test.clear();
+            for(let pieceRect of this.pieceRects){
+                let rect = pieceRect.rect;
+                let box = pieceRect.piece.node.getBoundingBoxToWorld();
+                let position = cc.v2(box.x, box.y);
+                // position = this.grid.convertToWorldSpaceAR(position);
+                position = window.gamePlay.node.convertToNodeSpaceAR(position);
+                test.lineTo(0,0);
+                test.rect(position.x, position.y, box.width, box.height);
+                cc.log(`box : ${box.width} - ${box.height}`);
+                cc.log(`rect : ${rect.width} - ${rect.height}`);
+                test.stroke();    
+
+                //box 2
+                let box2 = pieceRect.piece.node.getBoundingBox();
+                let position2 = cc.v2(box2.x, box2.y);
+                position2 = this.grid.convertToWorldSpaceAR(position2);
+                position2 = window.gamePlay.node.convertToNodeSpaceAR(position2);
+                test.lineTo(0,0);
+                test.rect(position2.x, position2.y, box2.width, box2.height);
+                test.stroke();    
+            }
+            // let box = this.node.getBoundingBoxToWorld()
+            let box = this.grid.getBoundingBoxToWorld();
+            test.rect(box.x, box.y, box.width, box.height);
+            test.stroke();
+        }
     }
 });

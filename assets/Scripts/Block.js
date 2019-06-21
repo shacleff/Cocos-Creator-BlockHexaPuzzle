@@ -42,6 +42,8 @@ cc.Class({
                 tutorial.hideRotatePieceTutorial();
             }
             this.countTime = Date.now();
+            this.piece.node.removeFromParent(false);
+            window.gamePlay.node.addChild(this.piece.node, 2);
         }
     },
 
@@ -62,7 +64,7 @@ cc.Class({
     },
 
     touchEnd(event){
-        if(this.piece){
+        if(this.piece != null){
             this.piece.setBlockIsHold(false);
             let hexagonsAvaiable = window.gamePlay.isPieceFit(this.piece);
             if(hexagonsAvaiable.length == this.piece.blocks.length){
@@ -77,7 +79,7 @@ cc.Class({
             }
             this.piece.revertToPieces(this.durationMove);
             window.gamePlay.checkWin();
-            if(this.piece.node.scale != 1){
+            if(this.piece && this.piece.node && this.piece.node.scale != 1){
                 window.gamePlay.actionHandler.showCanRotate(this.piece);
             }
             window.gamePlay.hideAllShadow(false);

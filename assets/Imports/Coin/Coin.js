@@ -16,19 +16,20 @@ cc.Class({
             default: null,
             type: cc.Node
         },
-        coin : 100,
+        coin : 0,
         keySave: "coin"
     },
 
     onLoad(){
-        this.node.zIndex = 110;
-        let coinSave = cc.sys.localStorage.getItem(this.keySave);
-        if(coinSave)this.coin = Number(coinSave);
+        this.node.zIndex = 90;
+        // let coinSave = cc.sys.localStorage.getItem(this.keySave);
+        // if(coinSave)this.coin = Number(coinSave);
         this.label = this.node.getChildByName('Count').getComponent(cc.Label);
         this.label.string = this.coin;
     },
 
     addCoin(value){
+        AddCoin(value);
         this.coin += value;
         this.label.string = this.coin;
         this.coinAddedLabel.getComponent(cc.Label).string = this.convertCoinToString(value);
@@ -53,11 +54,11 @@ cc.Class({
     },
 
     saveCoins(){
-        cc.sys.localStorage.setItem(this.keySave, this.coin);
+        // cc.sys.localStorage.setItem(this.keySave, this.coin);
     },
 
     onDestroy(){
-        this.saveCoins();
+        // this.saveCoins();
     }
 
 });

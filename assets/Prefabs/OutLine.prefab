@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Piece",
+    "_name": "OutLine",
     "_objFlags": 0,
     "_parent": null,
     "_children": [],
@@ -37,8 +37,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 0,
-      "height": 0
+      "width": 464,
+      "height": 401
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -68,31 +68,36 @@
     "_skewY": 0,
     "_is3DNode": false,
     "groupIndex": 0,
+    "_rotationX": 0,
+    "_rotationY": 0,
     "_id": ""
   },
   {
-    "__type__": "7b80b5lnnRMQbCy+xqjBSPU",
+    "__type__": "cc.Sprite",
     "_name": "",
     "_objFlags": 0,
     "node": {
       "__id__": 1
     },
     "_enabled": true,
-    "blocks": [],
-    "positionPiecesArea": {
+    "_materials": [],
+    "_srcBlendFactor": 770,
+    "_dstBlendFactor": 771,
+    "_spriteFrame": {
+      "__uuid__": "e37214c0-2e02-4763-a9e6-f21258980249"
+    },
+    "_type": 0,
+    "_sizeMode": 1,
+    "_fillType": 0,
+    "_fillCenter": {
       "__type__": "cc.Vec2",
       "x": 0,
       "y": 0
     },
-    "positionInGameBoard": {
-      "__type__": "cc.Vec2",
-      "x": 9999,
-      "y": 9999
-    },
-    "outLine": {
-      "__uuid__": "dc26264c-e209-46f0-acb1-a6cf65aaa4e5"
-    },
-    "outLines": [],
+    "_fillStart": 0,
+    "_fillRange": 0,
+    "_isTrimmedMode": true,
+    "_atlas": null,
     "_id": ""
   },
   {
@@ -101,9 +106,9 @@
       "__id__": 1
     },
     "asset": {
-      "__uuid__": "e7a688f4-1345-46c9-8217-6ebf496d2db6"
+      "__uuid__": "d1bd8c6d-d96e-49a2-8f4b-8634702ff0db"
     },
-    "fileId": "61u8X9zA9P1Z5c6E2APJgv",
+    "fileId": "83uCYd3uRAtKftPdGYfiV4",
     "sync": false
   }
 ]

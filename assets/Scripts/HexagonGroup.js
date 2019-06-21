@@ -24,13 +24,18 @@ cc.Class({
         
     },
 
+    animateDestroy(){
+        let ah = window.gamePlay.actionHandler;
+        for(let piece of this.pieces)
+            for(let block of piece.blocks) ah.destroyAnimation(block);
+    },
+
     clear(){
         for(let hexa of this.hexagons){
             hexa.clear();
             hexa.node.destroy();
         }
-        for(let piece of this.pieces)
-            piece.node.destroy();
+        this.pieces.forEach(p => p.node.destroy());
         this.hexagons.length = 0;
         this.pieces.length = 0;
     },

@@ -16,7 +16,8 @@ export var ActionHandler = cc.Class({
         angleRotate : 120,
         timeToActiveTapRotate : 0.5,    //second unit
         showRotateAngleChange : 30,
-        showRotateRepeattimes : 2
+        showRotateRepeattimes : 2,
+        animationDestroyTime : 2
     },
     // LIFE-CYCLE CALLBACKS:
 
@@ -36,16 +37,18 @@ export var ActionHandler = cc.Class({
     },
 
     destroyAnimation(block){
+        let blockCom = block.getComponent('Block');
+        if(blockCom)blockCom.piece = null;
         let x = RandomRange(-300, 300);
-        let y = window.gamePlay.node.height;
+        let y = window.gamePlay.node.height / 2;
         block.runAction((
             // cc.repeatForever(cc.rotateBy(1, 250)),
             cc.sequence(
-                cc.jumpBy(2, cc.v2(x, -y), 1000, 1), 
+                cc.jumpBy(this.animationDestroyTime, cc.v2(x, -y), 500, 1), 
                 cc.callFunc(()=>{
                     block.destroy();
                 }, block))
-        ))
+        )) 
     },
 
 

@@ -57,5 +57,6 @@ cc.Class({
     loadSave(){
         let rotate = cc.sys.localStorage.getItem(KEY_ROTATE_TUTORIAL);
         if(rotate)this.rotateTutorialShowed = rotate;
+        else this.rotateTutorialShowed = false;
     },
 });

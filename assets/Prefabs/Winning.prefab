@@ -366,6 +366,11 @@
     "_enabled": true,
     "_animation": null,
     "_armature": null,
+    "numberHappyAfterHint": 1,
+    "numberSadWhenBack": -1,
+    "numberAngryWhenRefresh": 1,
+    "numberBored": 1,
+    "timeBoredBeforeHint": 3,
     "_id": ""
   },
   {
@@ -775,8 +780,8 @@
     },
     "_scale": {
       "__type__": "cc.Vec3",
-      "x": 1,
-      "y": 1,
+      "x": 2,
+      "y": 2,
       "z": 1
     },
     "_quat": {
@@ -793,7 +798,7 @@
     "_id": ""
   },
   {
-    "__type__": "cc.Sprite",
+    "__type__": "dragonBones.ArmatureDisplay",
     "_name": "",
     "_objFlags": 0,
     "node": {
@@ -801,23 +806,31 @@
     },
     "_enabled": true,
     "_materials": [],
-    "_srcBlendFactor": 770,
-    "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "3c5246ef-a866-4dc2-a3ec-7bb4d8684678"
+    "_armatureName": "Armature",
+    "_animationName": "animtion0",
+    "_preCacheMode": 0,
+    "_cacheMode": 0,
+    "playTimes": -1,
+    "premultipliedAlpha": false,
+    "_armatureKey": "e32a1676-345a-4d17-a4f5-f21c5b040088#a5db4fa8-a7a3-40b3-a8e6-b4229da3dd75",
+    "_accTime": 0,
+    "_playCount": 0,
+    "_frameCache": null,
+    "_curFrame": null,
+    "_playing": false,
+    "_armatureCache": null,
+    "_N$dragonAsset": {
+      "__uuid__": "e32a1676-345a-4d17-a4f5-f21c5b040088"
     },
-    "_type": 0,
-    "_sizeMode": 1,
-    "_fillType": 0,
-    "_fillCenter": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
+    "_N$dragonAtlasAsset": {
+      "__uuid__": "a5db4fa8-a7a3-40b3-a8e6-b4229da3dd75"
     },
-    "_fillStart": 0,
-    "_fillRange": 0,
-    "_isTrimmedMode": true,
-    "_atlas": null,
+    "_N$_defaultArmatureIndex": 0,
+    "_N$_animationIndex": 1,
+    "_N$_defaultCacheMode": 0,
+    "_N$timeScale": 1,
+    "_N$debugBones": false,
+    "_N$enableBatch": false,
     "_id": ""
   },
   {
@@ -862,7 +875,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 106,
+      "width": 105.21,
       "height": 114.66
     },
     "_anchorPoint": {
@@ -1305,7 +1318,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 254,
+      "width": 253.37,
       "height": 126
     },
     "_anchorPoint": {
@@ -1433,7 +1446,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 260,
+      "width": 261.6,
       "height": 151.2
     },
     "_anchorPoint": {
@@ -1955,7 +1968,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 124,
+      "width": 124.22,
       "height": 126
     },
     "_anchorPoint": {
