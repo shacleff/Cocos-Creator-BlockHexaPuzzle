@@ -205,7 +205,7 @@ cc.Class({
             this.functionHandler.offSuggestHint();
             this.isGenerating = true;
             if(!this.isWin)this.clearBoard();
-            this.clearBoard();
+            // this.clearBoard();
             this.node.getChildByName('SelectionBar').getComponent('SelectionBar').clear();
             this.createGame();
             this.node.runAction(cc.sequence(cc.delayTime(1), cc.callFunc(()=>{this.isGenerating = false;}, this)));
@@ -785,7 +785,12 @@ cc.Class({
     },
 
     setToNewHexagons(piece, listHexagons){
-        piece.positionInGameBoard = this.convertToCanvasPosition(listHexagons[0].node.parent, listHexagons[0].node.position);
+        // piece.positionInGameBoard = this.convertToCanvasPosition(listHexagons[0].node.parent, listHexagons[0].node.position);
+        
+        let newPos = this.node.convertToWorldSpaceAR(listHexagons[0].node.position);
+        newPos = piece.node.parent.convertToNodeSpaceAR(newPos);
+        piece.positionInGameBoard = newPos;
+
         for(let i = 0; i < listHexagons.length; ++i){
             listHexagons[i].block = piece.blocks[i];
         }

@@ -8,17 +8,6 @@
 //  - [Chinese] https://docs.cocos.com/creator/manual/zh/scripting/life-cycle-callbacks.html
 //  - [English] https://www.cocos2d-x.org/docs/creator/manual/en/scripting/life-cycle-callbacks.html
 
-var Range = require('./Range');
-
-function PieceRect(piece, rect, horizontal, vertical){
-    this.piece = piece;
-    this.rect = rect;
-    this.horizontal = new Range();
-    this.horizontal.set(horizontal);
-    this.vertical = new Range();
-    this.vertical.set(vertical);
-};
-
 cc.Class({
     extends: cc.Component,
 
@@ -35,15 +24,13 @@ cc.Class({
             type: cc.Prefab
         },
 
-        grid: cc.Node
+        grid: cc.Node,
     },
 
     onLoad () {
-        this.rangeHorizontal = this.node.width / 2 - this.margin.x;
-        this.rangeVertical = this.node.height / 2 - this.margin.y;
-        cc.log("selection size : " + this.node.getBoundingBoxToWorld());
-        cc.log("width : " + this.node.width);
-        cc.log("height : " + this.node.height);
+        this.rangeHeightMax = this.grid.height / 2 + this.grid.position.y;
+        this.rangeHeightMin = this.grid.position.y - this.grid.height / 2;
+        this.node.zIndex = 2;
     },
 
     clear(){
@@ -52,50 +39,15 @@ cc.Class({
 
     push(piece){
         if(piece.blocks.length > 0){
-            let startPosition = piece.blocks[0].getPosition();
-            let sizeBlock = this.getTrueSize(piece.blocks[0].getContentSize());
-            let horizontal = new Range(), vertical = new Range();
-            for(let block of piece.blocks){
-                let subPosition = block.getPosition().sub(startPosition);
-                subPosition.divSelf(2);
-                if(subPosition.x != 0){
-                    if(subPosition.x < horizontal.min)horizontal.min = subPosition.x;
-                    else if(subPosition.x > horizontal.max)horizontal.max = subPosition.x;
-                }
-                if(subPosition.y != 0){
-                    if(subPosition.y < vertical.min)vertical.min = subPosition.y;
-                    else if(subPosition.y > vertical.max)vertical.max = subPosition.y;
-                }
-            }
-
-            let position = cc.v2(0, 0);
-            piece.positionPiecesArea = position;
-            piece.revertToPieces(0, true);
-
-            //for Rect
-            horizontal.min -= sizeBlock.width/2;
-            horizontal.max += sizeBlock.width/2;
-            vertical.min -= sizeBlock.height/2;
-            vertical.max += sizeBlock.height/2;
-            let posRect = cc.v2(position.x + horizontal.min, position.y + vertical.min);
-            let rect = cc.rect(posRect.x, posRect.y, horizontal.max - horizontal.min, vertical.max - vertical.min);
-            this.pieceRects.push(new PieceRect(piece, rect, horizontal, vertical));
-
-            cc.log("rect : " + rect);
+            this.pieceRects.push(piece);
             piece.node.removeFromParent(false);
-            // piece.node.setContentSize(cc.size(200, 200));
-            piece.node.setContentSize(cc.size(rect.width, rect.height));
-            piece.node.width = rect.width;
-            piece.node.height = rect.height;
             this.grid.addChild(piece.node);
-            this.grid.getComponent(cc.Layout).updateLayout();
         }
     },
 
     resize(){
-        this.drawTest();
-        return;
         if(this.pieceRects.length <= 0)return;
+
         //shuffle random array
         for (let i = this.pieceRects.length - 1; i > 0; i--) {
             const j = ~~(Math.random() * (i + 1));
@@ -103,157 +55,125 @@ cc.Class({
         }
 
         //set anchor point for each piece
-        for(let pieceRect of this.pieceRects){
-            if(pieceRect.piece.canRotate){
-                let oldAnchorPos = pieceRect.piece.node.position;
-                let rect = pieceRect.rect;
-                let newAnchorPos = cc.v2(rect.x + rect.width / 2, rect.y + rect.height / 2);
-                let offset = newAnchorPos.sub(oldAnchorPos);
-                for(let block of pieceRect.piece.blocks)block.position = block.position.sub(offset);
-                for(let outline of pieceRect.piece.outLines)outline.position = outline.position.sub(offset);
-        
-                let side = rect.width > rect.height ? rect.width : rect.height;
-                pieceRect.horizontal.min = -side / 2;
-                pieceRect.horizontal.max = side / 2;
-                pieceRect.vertical.min = -side / 2;
-                pieceRect.vertical.max = side / 2;
-
-                offset = cc.v2(Math.abs(offset.x), Math.abs(offset.y));
-                pieceRect.rect.x = cc.v2(newAnchorPos.x - side / 2 - offset.x / 2);
-                pieceRect.rect.y = cc.v2(newAnchorPos.y - side / 2 - offset.y / 2);
-                rect.width = side + offset.x / 2;
-                rect.height = side + offset.y / 2;
+        for(let piece of this.pieceRects){
+            if(piece.canRotate){
+                let node = piece.node;
+                let box = node.getBoundingBoxToWorld();
+                let newAnchorPos = cc.v2(box.x + box.width / 2, box.y + box.height / 2);
+                cc.log("New : " + newAnchorPos);
+                cc.log("Old : " + this.grid.convertToWorldSpaceAR(node.position));
+                let offset = newAnchorPos.sub(this.grid.convertToWorldSpaceAR(node.position));
+                for(let block of piece.blocks)block.position = block.position.sub(offset);
+                for(let ol of piece.outLines)ol.position = ol.position.sub(offset);
+    
+                // piece.node.runAction(cc.repeatForever(cc.rotateBy(1, 270)));
             }
+            
         }
-        
-        let row = 1;
-        let posStart = cc.v2(-this.rangeHorizontal, this.rangeVertical);
-        posStart = this.convertFromBarToCanvasPos(posStart);
-        let posTemp = posStart.clone();
-        let sizeBlock = this.getTrueSize(this.pieceRects[0].piece.blocks[0].getContentSize());
-        for(let pieceRect of this.pieceRects){
-            if(pieceRect.piece.blocks.length > 0){
-                let rect = pieceRect.rect;
-                if(posTemp.x + rect.width > this.rangeHorizontal + this.margin.x){
-                    posTemp.x = posStart.x;
-                    posTemp.y = -this.rangeVertical;
-                    posTemp = this.convertFromBarToCanvasPos(posTemp);
-                    row = 2;
-                }
-                if(row == 1){
-                    posTemp.y = this.node.position.y + this.rangeVertical - rect.height;
-                }
 
-                let position = cc.v2(posTemp.x - pieceRect.horizontal.min, posTemp.y - pieceRect.vertical.min);
-                pieceRect.piece.positionPiecesArea = position;
-                pieceRect.piece.revertToPieces(0, true);
-
-                rect.x = posTemp.x;
-                rect.y = posTemp.y;
-                //for next
-                posTemp.x += rect.width + this.ratioMarginBox.width * sizeBlock.width;
+        //set position
+        let gridBox = this.grid.getBoundingBoxToWorld();
+        let girdPos = this.grid.convertToNodeSpaceAR(cc.v2(gridBox.x, gridBox.y));
+        let startX = girdPos.x;
+        let x = startX;
+        let anchor = 0;
+        let numberRow = 1;
+        let totalWidth = 0;
+        let pieceHandled = [];
+        for(let piece of this.pieceRects){
+            let size = piece.node.getBoundingBoxToWorld();
+            let pieceWidth = size.width;
+            if(piece.canRotate)
+            {
+                if(size.width < size.height)pieceWidth = size.height;
+                // x += size.height;
+                // totalWidth += size.height;
             }
-        }   
-        if(row == 1){
-            this.orderPieceInRow(this.pieceRects, 0);
-        }else if(row == 2){
-            let inRow1 = ~~(this.pieceRects.length / 2);
-            let listRow1 = [], listRow2 = [];
-            for(let i = 0; i < inRow1; ++i)listRow1.push(this.pieceRects[i]);
-            for(let i = inRow1; i < this.pieceRects.length; ++i)listRow2.push(this.pieceRects[i]);
-            this.orderPieceInRow(listRow1, 1);
-            this.orderPieceInRow(listRow2, -1);
-        } 
+            pieceWidth += 50;
+            if(totalWidth + pieceWidth >= this.node.width){
+                if(numberRow == 1){
+                    for(let piece of pieceHandled)this.putPieceAnchor(piece, 1, piece.canRotate);
+                    anchor = -1;
+                    x = startX;
+                }
+                else if(numberRow == 2){
+                    anchor = 1;
+                    numberRow = 1;
+                }  
+                totalWidth = 0;
+                ++numberRow;
+                pieceHandled.length = 0;
+            }
 
+            this.putPieceAnchor(piece.node, anchor, false, x);
+            x += pieceWidth;
+            totalWidth += pieceWidth;
+            pieceHandled.push(piece.node);
+        }
+
+        this.node.getComponent(cc.ScrollView).enabled = false;
         //tutorial for rotate 
-        for(let pieceRect of this.pieceRects)
-            if(pieceRect.piece && pieceRect.piece.canRotate){
-                window.gamePlay.tutorial.showRotatePieceTutorial(pieceRect.piece.node);
+        for(let piece of this.pieceRects)
+            if(piece && piece.canRotate) {
+                window.gamePlay.tutorial.showRotatePieceTutorial(piece.node);
                 break;
             }
+
+        this.drawTest();
     },
 
-    orderPieceInRow(arrayPiece, anchorY){
-        let space = this.getLastHozi(arrayPiece);
-        for(let i in arrayPiece){
-            i = Number(i);
-            let pieceRect = arrayPiece[i];
-            let newPos = this.getPositionByAnchorVertical(anchorY, pieceRect);
-            if(i >= 0) newPos.x += (i + 0.5) * space;
-            pieceRect.piece.positionPiecesArea = newPos;
-            pieceRect.piece.revertToPieces(0, true);
-            pieceRect.rect.x = newPos.x + pieceRect.horizontal.min;
-            pieceRect.rect.y = newPos.y + pieceRect.vertical.min;
-        }            
-    },
-
-    getPositionByAnchorVertical(anchor, pieceRect){
-        let piecePosition = pieceRect.piece.node.position;
-        switch(anchor){
-            case 0:
-                piecePosition = cc.v2(piecePosition.x, this.node.position.y);
-                break;
-            case 1:
-                piecePosition.y = this.node.position.y + this.rangeVertical - pieceRect.vertical.max - this.margin.y;
-                break;
-            case -1:
-                piecePosition.y = this.node.position.y - this.rangeVertical - pieceRect.vertical.min + this.margin.y;
-                break;
-            default:
-                break;;
+    //@anchor : -1 down, 1 top, 0 center
+    putPieceAnchor(pieceNode, anchor, canRotate = false ,x = null){
+        let box = pieceNode.getBoundingBoxToWorld();
+        let position = this.grid.convertToNodeSpaceAR(cc.v2(box.x, box.y));
+        let sub = x ? x - position.x : 0;
+        let newPos = cc.v2(pieceNode.position.x + sub, pieceNode.position.y); 
+        
+        if(anchor == -1){
+            let subY = this.rangeHeightMin - position.y;
+            newPos.y = newPos.y + subY;
+        }else if(anchor == 1){
+            let side = box.height;
+            if(canRotate && box.height < box.width)side = box.width;
+            let subY = (this.rangeHeightMax - side) - position.y;
+            newPos.y = newPos.y + subY;
+        }else {
+            let subY = 0 - position.y;
+            newPos.y = newPos.y + subY;
         }
 
-        return piecePosition;
-    },
-
-    getLastHozi(arrayPiece){
-        let sizeBlock = this.getTrueSize(arrayPiece[0].piece.blocks[0].getContentSize());
-        let spaceOrigin = this.ratioMarginBox.width * sizeBlock.width;
-        let totalWidth =  this.rangeHorizontal * 2;
-        let totalWidthOfPieces = 0;
-        for(let pieceRect of arrayPiece)totalWidthOfPieces += pieceRect.rect.width;
-        return Math.abs(totalWidth - totalWidthOfPieces) / arrayPiece.length - spaceOrigin;
-    },
-
-    convertFromBarToCanvasPos(position){
-        return position.add(this.node.position);
-    },
-
-    getTrueSize(size){
-        let actionHandler =  window.gamePlay.actionHandler;
-        return cc.size(size.width * actionHandler.selectionScale, size.height * actionHandler.selectionScale);
+        pieceNode.position = newPos;
+        let pieceCom = pieceNode.getComponent('Piece');
+        if(pieceCom){
+            pieceCom.positionPiecesArea = newPos;
+            pieceCom.revertToPieces(0, true);
+        }
+        
+        return cc.size(box.width, box.height);
     },
 
     drawTest(){
         //ONLY test Rect
         let test = window.gamePlay.node.getChildByName('Test');
+        test.zIndex = 10;
         if(test){
             test = test.getComponent(cc.Graphics);
             test.clear();
-            for(let pieceRect of this.pieceRects){
-                let rect = pieceRect.rect;
-                let box = pieceRect.piece.node.getBoundingBoxToWorld();
+            for(let piece of this.pieceRects){
+                let box = piece.node.getBoundingBoxToWorld();
                 let position = cc.v2(box.x, box.y);
                 // position = this.grid.convertToWorldSpaceAR(position);
                 position = window.gamePlay.node.convertToNodeSpaceAR(position);
                 test.lineTo(0,0);
                 test.rect(position.x, position.y, box.width, box.height);
-                cc.log(`box : ${box.width} - ${box.height}`);
-                cc.log(`rect : ${rect.width} - ${rect.height}`);
-                test.stroke();    
-
-                //box 2
-                let box2 = pieceRect.piece.node.getBoundingBox();
-                let position2 = cc.v2(box2.x, box2.y);
-                position2 = this.grid.convertToWorldSpaceAR(position2);
-                position2 = window.gamePlay.node.convertToNodeSpaceAR(position2);
-                test.lineTo(0,0);
-                test.rect(position2.x, position2.y, box2.width, box2.height);
+                test.strokeColor = cc.Color.RED;
                 test.stroke();    
             }
             // let box = this.node.getBoundingBoxToWorld()
-            let box = this.grid.getBoundingBoxToWorld();
-            test.rect(box.x, box.y, box.width, box.height);
+            let box = this.grid.parent.getBoundingBoxToWorld();
+            let position = cc.v2(box.x, box.y);
+            position = window.gamePlay.node.convertToNodeSpaceAR(position);
+            test.rect(position.x, position.y, box.width, box.height);
             test.stroke();
         }
     }

@@ -20,6 +20,8 @@ cc.Class({
     },
 
     onLoad(){
+        this.node.zIndex = 10;
+        window.gamePlay.node.getChildByName('Home').zIndex = 11;
         this.node.getChildByName('BG').on(cc.Node.EventType.TOUCH_START, ()=>{}, this);
         this.coinsAdded = 0;
     },

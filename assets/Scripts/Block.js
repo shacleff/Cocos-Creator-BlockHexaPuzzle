@@ -42,8 +42,8 @@ cc.Class({
                 tutorial.hideRotatePieceTutorial();
             }
             this.countTime = Date.now();
-            this.piece.node.removeFromParent(false);
-            window.gamePlay.node.addChild(this.piece.node, 2);
+            // this.piece.node.removeFromParent(false);
+            // window.gamePlay.node.addChild(this.piece.node, 2);
         }
     },
 
