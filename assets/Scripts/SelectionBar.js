@@ -31,6 +31,7 @@ cc.Class({
         this.rangeHeightMax = this.grid.height / 2 + this.grid.position.y;
         this.rangeHeightMin = this.grid.position.y - this.grid.height / 2;
         this.node.zIndex = 2;
+        // this.node.width = window.gamePlay.node.width;
     },
 
     clear(){
@@ -57,32 +58,16 @@ cc.Class({
         //set anchor point for each piece
         for(let piece of this.pieceRects){
             let node = piece.node;
-            let oldPos = node.position.clone();
             let box = node.getBoundingBoxToWorld();
             let newAnchorPos = cc.v2(box.x + box.width / 2, box.y + box.height / 2);
-            cc.log("Anchor : " + newAnchorPos);
             let oldAnchorPos = node.parent.convertToWorldSpaceAR(node.position.clone());
-            cc.log("Position : " + oldAnchorPos);
             let offset = newAnchorPos.sub(oldAnchorPos);
             offset.mulSelf(2);
-            cc.log("OFfset : " + offset);
             for(let child of node.children)child.position = child.position.sub(offset);
-            // for(let b of piece.blocks)b.position = b.position.sub(offset);
-            // for(let o of piece.outLines)o.position = o.position.sub(offset);
-            //after 
-            box = node.getBoundingBoxToWorld();
-            newAnchorPos = cc.v2(box.x + box.width / 2, box.y + box.height / 2);
-            cc.log("Anchor : " + newAnchorPos);
-            oldAnchorPos = node.parent.convertToWorldSpaceAR(node.position.clone());
-            cc.log("Position : " + oldAnchorPos);
-            offset = newAnchorPos.sub(oldAnchorPos);
-            cc.log("OFfset : " + offset);
-
-            // piece.resetAnchor();
-            cc.log("-----------------");
         }
 
         //set position
+        this.node.getComponent(cc.ScrollView).enabled = false;
         let gridBox = this.grid.getBoundingBoxToWorld();
         let girdPos = this.grid.convertToNodeSpaceAR(cc.v2(gridBox.x, gridBox.y));
         let startX = girdPos.x;
@@ -91,39 +76,61 @@ cc.Class({
         let numberRow = 1;
         let totalWidth = 0;
         let pieceHandled = [];
+        let rangeWidth = this.node.width;
         for(let piece of this.pieceRects){
             let size = piece.node.getBoundingBoxToWorld();
             let pieceWidth = size.width;
             if(piece.canRotate)
             {
                 if(size.width < size.height)pieceWidth = size.height;
-                // x += size.height;
-                // totalWidth += size.height;
+                x += Math.abs(size.height - size.width) / 2; 
             }
             pieceWidth += 50;
-            if(totalWidth + pieceWidth >= this.node.width){
+            if(totalWidth + pieceWidth >= rangeWidth - 50){
                 if(numberRow == 1){
-                    for(let piece of pieceHandled)this.putPieceAnchor(piece, 1, piece.canRotate);
+                    for(let piece of pieceHandled)this.putPieceAnchor(piece.node, 1, piece.canRotate);
                     anchor = -1;
                     x = startX;
+                    if(piece.canRotate)x += Math.abs(size.height - size.width) / 2;
                 }
                 else if(numberRow == 2){
                     anchor = 1;
                     numberRow = 1;
+                    pieceHandled.length = 0;
+                    this.node.getComponent(cc.ScrollView).enabled = true;
+                    rangeWidth *= 2;
                 }  
                 totalWidth = 0;
                 ++numberRow;
-                pieceHandled.length = 0;
             }
 
-            this.putPieceAnchor(piece.node, anchor, false, x);
+            while(true){
+                if(totalWidth + pieceWidth >= rangeWidth - 45){
+                    if(numberRow == 2){
+
+                    }
+                    this.node.getComponent(cc.ScrollView).enabled = true;
+                }
+                this.putPieceAnchor(piece.node, anchor, piece.canRotate, x);
+                let intersect = false;
+                for(let other of pieceHandled){
+                    if(this.isIntersects(piece.node, other.node)){
+                        intersect = true;
+                        let width = other.node.getBoundingBoxToWorld().width;
+                        x += width
+                        totalWidth += width;
+                        break;
+                    }
+                }
+                if(!intersect)break;
+                cc.log("interest");
+            }
+            
+            
             x += pieceWidth;
             totalWidth += pieceWidth;
-            pieceHandled.push(piece.node);
+            pieceHandled.push(piece);
         }
-
-        this.node.getComponent(cc.ScrollView).enabled = false;
-
         
         //tutorial for rotate 
         let wasTutorial = false;
@@ -139,7 +146,7 @@ cc.Class({
             }
         }
 
-        this.drawTest();
+        // this.drawTest();
     },
 
     //@anchor : -1 down, 1 top, 0 center
@@ -150,8 +157,8 @@ cc.Class({
         let newPos = cc.v2(pieceNode.position.x + sub, pieceNode.position.y); 
         
         if(anchor == -1){
-            let subY = this.rangeHeightMin - position.y;
-            if(canRotate && box.height < box.width)subY -= (box.width - box.height);
+            let subY = this.rangeHeightMin - position.y;;
+            // if(canRotate && box.height < box.width)subY = this.rangeHeightMin - position.x;
             newPos.y = newPos.y + subY;
         }else if(anchor == 1){
             let side = box.height;
@@ -171,6 +178,12 @@ cc.Class({
         }
         
         return cc.size(box.width, box.height);
+    },
+
+    isIntersects(pieceNode1, pieceNode2){
+        let box1 = pieceNode1.getBoundingBoxToWorld();
+        let box2 = pieceNode2.getBoundingBoxToWorld();
+        return box1.intersects(box2);
     },
 
     drawTest(){
