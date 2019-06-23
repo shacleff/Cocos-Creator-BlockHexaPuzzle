@@ -302,9 +302,6 @@ cc.Class({
                     let piece = pieces[randomIndex];
                     if(piece.blocks.length > 1 && piece.blocks.length < this.numberBlockEachPieces.max && !isRotateSame(piece)){
                         piece.canRotate = true;
-                        let randomRo = ~~(Math.random() * 2);
-                        for(let i = 0; i < randomRo; i++)this.actionHandler.rotatePiece(piece);
-                        this.actionHandler.showCanRotate(piece);
                         number--;
                     }
                     pieces.splice(randomIndex, 1);

@@ -42,14 +42,8 @@ cc.Class({
         this.blocks.push(block);
         let blockCom = block.getComponent('Block');
         blockCom.piece = this;
-         //create outline for piece
-        let outline = cc.instantiate(this.outLine);
-        outline.position = block.position;
-        let size = block.getContentSize();
-        let ratio = window.gamePlay.widthOutLineHexagon;
-        outline.setContentSize(size.width*ratio, size.height*ratio);
-        this.node.addChild(outline, 0);
-        this.outLines.push(outline);
+        // this.resetAnchor();
+        this.createOutline(block);
     },
 
     moveBy(offset){
@@ -104,6 +98,27 @@ cc.Class({
         }    
 
         this.setOutLine(false); 
+    },
+
+    resetAnchor(){
+        let box = this.node.getBoundingBoxToWorld();
+        let boxPos  = this.node.convertToNodeSpaceAR(cc.v2(box.x, box.y));
+        let newPos = cc.v2(boxPos.x + box.width / 2, boxPos.y + box.height / 2);
+        let oldPos = this.blocks[0].position;
+        let offset = newPos.sub(oldPos);
+        for(let child of this.node.children)child.position = child.position.sub(offset);
+        // this.sub = this.sub.sub(newPos);
+    },
+
+    createOutline(block){
+        //create outline for piece
+        let outline = cc.instantiate(this.outLine);
+        outline.position = block.position;
+        let size = block.getContentSize();
+        let ratio = window.gamePlay.widthOutLineHexagon;
+        outline.setContentSize(size.width*ratio, size.height*ratio);
+        this.node.addChild(outline, 0);
+        this.outLines.push(outline);
     },
 
     setOutLine(value){

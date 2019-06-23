@@ -56,19 +56,30 @@ cc.Class({
 
         //set anchor point for each piece
         for(let piece of this.pieceRects){
-            if(piece.canRotate){
-                let node = piece.node;
-                let box = node.getBoundingBoxToWorld();
-                let newAnchorPos = cc.v2(box.x + box.width / 2, box.y + box.height / 2);
-                cc.log("New : " + newAnchorPos);
-                cc.log("Old : " + this.grid.convertToWorldSpaceAR(node.position));
-                let offset = newAnchorPos.sub(this.grid.convertToWorldSpaceAR(node.position));
-                for(let block of piece.blocks)block.position = block.position.sub(offset);
-                for(let ol of piece.outLines)ol.position = ol.position.sub(offset);
-    
-                // piece.node.runAction(cc.repeatForever(cc.rotateBy(1, 270)));
-            }
-            
+            let node = piece.node;
+            let oldPos = node.position.clone();
+            let box = node.getBoundingBoxToWorld();
+            let newAnchorPos = cc.v2(box.x + box.width / 2, box.y + box.height / 2);
+            cc.log("Anchor : " + newAnchorPos);
+            let oldAnchorPos = node.parent.convertToWorldSpaceAR(node.position.clone());
+            cc.log("Position : " + oldAnchorPos);
+            let offset = newAnchorPos.sub(oldAnchorPos);
+            offset.mulSelf(2);
+            cc.log("OFfset : " + offset);
+            for(let child of node.children)child.position = child.position.sub(offset);
+            // for(let b of piece.blocks)b.position = b.position.sub(offset);
+            // for(let o of piece.outLines)o.position = o.position.sub(offset);
+            //after 
+            box = node.getBoundingBoxToWorld();
+            newAnchorPos = cc.v2(box.x + box.width / 2, box.y + box.height / 2);
+            cc.log("Anchor : " + newAnchorPos);
+            oldAnchorPos = node.parent.convertToWorldSpaceAR(node.position.clone());
+            cc.log("Position : " + oldAnchorPos);
+            offset = newAnchorPos.sub(oldAnchorPos);
+            cc.log("OFfset : " + offset);
+
+            // piece.resetAnchor();
+            cc.log("-----------------");
         }
 
         //set position
@@ -112,12 +123,21 @@ cc.Class({
         }
 
         this.node.getComponent(cc.ScrollView).enabled = false;
+
+        
         //tutorial for rotate 
-        for(let piece of this.pieceRects)
+        let wasTutorial = false;
+        for(let piece of this.pieceRects){
             if(piece && piece.canRotate) {
-                window.gamePlay.tutorial.showRotatePieceTutorial(piece.node);
-                break;
+                let randomRo = ~~(Math.random() * 2);
+                for(let i = 0; i < randomRo; i++)window.gamePlay.actionHandler.rotatePiece(piece);
+                window.gamePlay.actionHandler.showCanRotate(piece);
+                if(!wasTutorial){
+                    window.gamePlay.tutorial.showRotatePieceTutorial(piece.node);
+                    wasTutorial = true;
+                }
             }
+        }
 
         this.drawTest();
     },
@@ -131,6 +151,7 @@ cc.Class({
         
         if(anchor == -1){
             let subY = this.rangeHeightMin - position.y;
+            if(canRotate && box.height < box.width)subY -= (box.width - box.height);
             newPos.y = newPos.y + subY;
         }else if(anchor == 1){
             let side = box.height;
@@ -158,7 +179,7 @@ cc.Class({
         test.zIndex = 10;
         if(test){
             test = test.getComponent(cc.Graphics);
-            test.clear();
+            // test.clear();
             for(let piece of this.pieceRects){
                 let box = piece.node.getBoundingBoxToWorld();
                 let position = cc.v2(box.x, box.y);
@@ -167,10 +188,27 @@ cc.Class({
                 test.lineTo(0,0);
                 test.rect(position.x, position.y, box.width, box.height);
                 test.strokeColor = cc.Color.RED;
-                test.stroke();    
+                test.stroke();  
+                
+                //anchor
+                let newAnchorPos = cc.v2(box.x + box.width / 2, box.y + box.height / 2);
+                newAnchorPos = window.gamePlay.node.convertToNodeSpaceAR(newAnchorPos);
+                let oldAnchorPos = piece.node.parent.convertToWorldSpaceAR(piece.node.position.clone());
+                oldAnchorPos = window.gamePlay.node.convertToNodeSpaceAR(oldAnchorPos);
+
+                test.lineTo(0,0);
+                test.circle(newAnchorPos.x, newAnchorPos.y, 20);
+                test.fillColor = cc.Color.YELLOW;
+                test.fill();
+
+                //position
+                test.lineTo(0,0);
+                test.circle(oldAnchorPos.x, oldAnchorPos.y, 20);
+                test.fillColor = cc.Color.WHITE;
+                test.fill();
             }
             // let box = this.node.getBoundingBoxToWorld()
-            let box = this.grid.parent.getBoundingBoxToWorld();
+            let box = this.grid.getBoundingBoxToWorld();
             let position = cc.v2(box.x, box.y);
             position = window.gamePlay.node.convertToNodeSpaceAR(position);
             test.rect(position.x, position.y, box.width, box.height);
