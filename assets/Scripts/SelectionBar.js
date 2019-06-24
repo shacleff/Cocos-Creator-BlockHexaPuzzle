@@ -30,7 +30,7 @@ cc.Class({
     onLoad () {
         this.rangeHeightMax = this.grid.height / 2 + this.grid.position.y;
         this.rangeHeightMin = this.grid.position.y - this.grid.height / 2;
-        this.node.zIndex = 2;
+        this.node.zIndex = 3;
         // this.node.width = window.gamePlay.node.width;
     },
 
@@ -48,7 +48,7 @@ cc.Class({
 
     resize(){
         if(this.pieceRects.length <= 0)return;
-
+        this.rangerWidth = window.gamePlay.node.width - this.margin.x;
         //shuffle random array
         for (let i = this.pieceRects.length - 1; i > 0; i--) {
             const j = ~~(Math.random() * (i + 1));
@@ -68,15 +68,15 @@ cc.Class({
 
         //set position
         this.node.getComponent(cc.ScrollView).enabled = false;
-        let gridBox = this.grid.getBoundingBoxToWorld();
+        let gridBox = cc.v2(this.margin.x, 0);
         let girdPos = this.grid.convertToNodeSpaceAR(cc.v2(gridBox.x, gridBox.y));
+        cc.log("Start : " + girdPos);
         let startX = girdPos.x;
         let x = startX;
         let anchor = 0;
         let numberRow = 1;
         let totalWidth = 0;
         let pieceHandled = [];
-        let rangeWidth = this.node.width;
         for(let piece of this.pieceRects){
             let size = piece.node.getBoundingBoxToWorld();
             let pieceWidth = size.width;
@@ -86,7 +86,7 @@ cc.Class({
                 x += Math.abs(size.height - size.width) / 2; 
             }
             pieceWidth += 50;
-            if(totalWidth + pieceWidth >= rangeWidth - 50){
+            if(totalWidth + pieceWidth >= this.rangerWidth){
                 if(numberRow == 1){
                     for(let piece of pieceHandled)this.putPieceAnchor(piece.node, 1, piece.canRotate);
                     anchor = -1;
@@ -94,18 +94,18 @@ cc.Class({
                     if(piece.canRotate)x += Math.abs(size.height - size.width) / 2;
                 }
                 else if(numberRow == 2){
-                    anchor = 1;
+                    anchor = 0;
                     numberRow = 1;
                     pieceHandled.length = 0;
-                    this.node.getComponent(cc.ScrollView).enabled = true;
-                    rangeWidth *= 2;
+                    // this.node.getComponent(cc.ScrollView).enabled = true;
+                    startX = x;
                 }  
                 totalWidth = 0;
                 ++numberRow;
             }
 
             while(true){
-                if(totalWidth + pieceWidth >= rangeWidth - 45){
+                if(totalWidth + pieceWidth >= this.rangerWidth){
                     if(numberRow == 2){
 
                     }
@@ -126,11 +126,12 @@ cc.Class({
                 cc.log("interest");
             }
             
-            
             x += pieceWidth;
             totalWidth += pieceWidth;
             pieceHandled.push(piece);
         }
+
+        this.beauty();
         
         //tutorial for rotate 
         let wasTutorial = false;
@@ -146,7 +147,7 @@ cc.Class({
             }
         }
 
-        // this.drawTest();
+        this.drawTest();
     },
 
     //@anchor : -1 down, 1 top, 0 center
@@ -166,8 +167,9 @@ cc.Class({
             let subY = (this.rangeHeightMax - side) - position.y;
             newPos.y = newPos.y + subY;
         }else {
-            let subY = 0 - position.y;
-            newPos.y = newPos.y + subY;
+            // let subY = 0 - position.y;
+            // newPos.y = newPos.y + subY;
+            newPos.y = 0;
         }
 
         pieceNode.position = newPos;
@@ -186,13 +188,59 @@ cc.Class({
         return box1.intersects(box2);
     },
 
+    beauty(){
+        let clonePiece = Array.from(this.pieceRects);
+        for(let i in clonePiece){
+            let piece = clonePiece[i];
+            let piecePos = piece.node.position;
+            cc.log(`piece ${i}: ` + piecePos);
+
+            let sameCell = this.findPieceSameCell(piece, clonePiece);
+            if(sameCell){
+                let box1 = piece.node.getBoundingBoxToWorld();
+                let box2 = sameCell.node.getBoundingBoxToWorld();
+                if(piecePos.y > 0){
+                    let side = box2.height > box2.width ? box2.height : box2.width;
+                    let distance = box1.y - (box2.y + side);
+                    cc.log("distance when > 0 : " + distance);
+                    piece.node.position = piece.node.position.sub(cc.v2(0, distance / 5));
+                    sameCell.node.position = sameCell.node.position.add(cc.v2(0, distance / 5));
+
+                } else if(piecePos.y < 0){
+    
+                }
+            } else this.putPieceAnchor(piece.node, 0, piece.canRotate);
+        }
+
+        for(let piece of this.pieceRects){
+            piece.positionPiecesArea = piece.node.position;
+            piece.revertToPieces(0, true); 
+        }
+    },
+
+    findPieceSameCell(piece, array){
+        for(let i in array){
+            let p = array[i];
+            let box1 = piece.node.getBoundingBoxToWorld();
+            let box2 = p.node.getBoundingBoxToWorld();
+            let widthCampare = box1.width > box2.width ? box1.width : box2.width;
+            if(~~box1.x == ~~box2.x && ~~box1.y == ~~box2.y && ~~box1.width == ~~box2.width && ~~box1.height == ~~box2.height)continue;
+            let sub = Math.abs(~~box1.x - ~~box2.x);
+            if(sub <= widthCampare){
+                array.splice(Number(i), 1);
+                return p;
+            }
+        }
+        return null;
+    },
+
     drawTest(){
         //ONLY test Rect
         let test = window.gamePlay.node.getChildByName('Test');
         test.zIndex = 10;
         if(test){
             test = test.getComponent(cc.Graphics);
-            // test.clear();
+            test.clear();
             for(let piece of this.pieceRects){
                 let box = piece.node.getBoundingBoxToWorld();
                 let position = cc.v2(box.x, box.y);
@@ -210,13 +258,13 @@ cc.Class({
                 oldAnchorPos = window.gamePlay.node.convertToNodeSpaceAR(oldAnchorPos);
 
                 test.lineTo(0,0);
-                test.circle(newAnchorPos.x, newAnchorPos.y, 20);
+                test.circle(newAnchorPos.x, newAnchorPos.y, 10);
                 test.fillColor = cc.Color.YELLOW;
                 test.fill();
 
                 //position
                 test.lineTo(0,0);
-                test.circle(oldAnchorPos.x, oldAnchorPos.y, 20);
+                test.circle(oldAnchorPos.x, oldAnchorPos.y, 10);
                 test.fillColor = cc.Color.WHITE;
                 test.fill();
             }

@@ -26,8 +26,11 @@ cc.Class({
 
     animateDestroy(){
         let ah = window.gamePlay.actionHandler;
-        for(let piece of this.pieces)
+        for(let piece of this.pieces){
             for(let block of piece.blocks) ah.destroyAnimation(block);
+            for(let ol of piece.outLines)if(ol && ol.isValid) ol.destroy();
+        }
+            
     },
 
     clear(){

@@ -33,7 +33,7 @@ cc.Class({
         let title = this.node.getChildByName('Hex LOGO');
         if(title)title.zIndex = 10;
         //Event
-        cc.director.preloadScene('GamePlay');
+        // cc.director.preloadScene('GamePlay');
         this.node.on(cc.Node.EventType.TOUCH_END, (event)=>{
             cc.director.loadScene('GamePlay');
         }, this);

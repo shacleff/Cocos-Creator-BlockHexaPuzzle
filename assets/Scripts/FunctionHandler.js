@@ -74,18 +74,33 @@ cc.Class({
             let time = 0.5;
             let incre = 0.5;
             for(let auto of this.autoes){
-                if(auto.piece && auto.piece.blocks.length > 0 && auto.piece.node.getNumberOfRunningActions() == 0){
+                let isRunning = auto.piece.node.getActionByTag(81);
+                if(auto.piece && auto.piece.blocks.length > 0 && !isRunning || typeof isRunning == 'undefined'){
                     window.gamePlay.actionHandler.stopShowCanRotate(auto.piece);
-                    auto.piece.node.runAction(cc.sequence(
-                                                cc.delayTime(time), 
-                                                cc.callFunc(()=>{auto.piece.moveBy(cc.v2(0,0));}),
-                                                cc.moveTo(incre, auto.position),
-                                                cc.callFunc(()=>{
-                                                    auto.piece.blocks[0].getComponent('Block').touchEnd(0);
-                                                }, this)));
+                    let autoPos = window.gamePlay.node.convertToWorldSpaceAR(auto.position);
+                    autoPos = auto.piece.node.parent.convertToNodeSpaceAR(autoPos);
+                    let sub = auto.piece.blocks[0].position;
+                    autoPos.subSelf(sub);
+                    auto.piece.node.angle = 0;
+                    
+                    let action = cc.sequence(
+                        cc.delayTime(time), 
+                        cc.callFunc(()=>{auto.piece.moveBy(cc.v2(0,0));}),
+                        cc.moveTo(incre, autoPos),
+                        cc.callFunc(()=>{
+                            auto.piece.blocks[0].getComponent('Block').touchEnd(0);
+                        }, this));
+                    action.setTag(81);
+                    auto.piece.node.runAction(action);
                     time += incre;
                 }
             }
+
+            let winning = window.gamePlay.node.getChildByName('Winning');
+            if(winning.active == true){
+                window.gamePlay.reset();
+            }
+
         }
 
         //suggest hint

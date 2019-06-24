@@ -152,7 +152,7 @@ cc.Class({
                 }
                     
             for(let piece of group.pieces)
-                this.functionHandler.saveAuto(piece, piece.node.position);
+                this.functionHandler.saveAuto(piece, piece.node.position.clone());
         }
         this.setRotateForPieces();
         this.putPiecesToSelectionBar();
@@ -226,7 +226,7 @@ cc.Class({
         }
         if(this.isWin){
             console.log("WIN");
-            if(this.coin)this.coin.addCoin(100);
+            if(this.coin)this.coin.addCoin(50);
             this.nextLevel();
             this.saveMgr.saveData(this.levelMgr.currentLevel + 1, this.levelMgr.currentDifficult + 1, null);
             this.clearBoard();
@@ -811,6 +811,10 @@ cc.Class({
     convertToCanvasPosition(parentNode, position){
         let checkPos = parentNode.convertToWorldSpaceAR(position);
         return this.node.convertToNodeSpaceAR(checkPos);
+    },
+
+    screenShot(){
+
     },
 
     getRandom(min, max){

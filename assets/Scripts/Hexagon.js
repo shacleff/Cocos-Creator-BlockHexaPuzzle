@@ -63,7 +63,7 @@ cc.Class({
     },
     setHint(spriteFrame){
         this.setShadow(spriteFrame);
-        this.shadow.zIndex = 20;
+        this.shadow.zIndex = 2;
         this.hinted = true;
     },
     hideShadow(force){
